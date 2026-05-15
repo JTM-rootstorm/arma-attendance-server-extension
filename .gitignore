@@ -1,0 +1,37 @@
+# Local planning inputs
+AGENTS.md
+plans/
+templates/
+
+# HEMTT and Arma build output
+.hemttout/
+releases/
+*.pbo
+*.bisign
+
+# Native build output
+build/
+out/
+dist/
+*.dll
+*.so
+*.pdb
+*.exe
+
+# Local server config and secrets
+arma_attendance.toml
+*.env
+.env
+.env.*
+!*.env.example
+
+# BI signing private keys
+*.biprivatekey
+*.hemttprivatekey
+keys/private/
+.hemtt/local/
+
+# Common editor noise
+.vscode/
+.idea/
+.DS_Store

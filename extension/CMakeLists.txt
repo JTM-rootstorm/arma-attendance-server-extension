@@ -1,0 +1,60 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(arma_attendance_extension VERSION 0.1.0 LANGUAGES CXX)
+
+include(CTest)
+
+find_package(CURL REQUIRED)
+
+add_library(arma_attendance_core STATIC
+    src/commands.cpp
+    src/config.cpp
+    src/http_client.cpp
+)
+
+target_include_directories(arma_attendance_core
+    PUBLIC
+        include
+)
+
+target_link_libraries(arma_attendance_core
+    PUBLIC
+        CURL::libcurl
+)
+
+target_compile_features(arma_attendance_core PUBLIC cxx_std_20)
+set_target_properties(arma_attendance_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(arma_attendance SHARED
+    src/extension_exports.cpp
+)
+
+target_link_libraries(arma_attendance PRIVATE arma_attendance_core)
+target_compile_features(arma_attendance PRIVATE cxx_std_20)
+set_target_properties(arma_attendance PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if(WIN32)
+    set_target_properties(arma_attendance PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME "arma_attendance_x64"
+        SUFFIX ".dll"
+    )
+else()
+    set_target_properties(arma_attendance PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME "arma_attendance"
+        SUFFIX ".so"
+    )
+endif()
+
+if(BUILD_TESTING)
+    add_executable(arma_attendance_smoke tests/smoke_main.cpp)
+    target_link_libraries(arma_attendance_smoke PRIVATE arma_attendance_core)
+    target_compile_features(arma_attendance_smoke PRIVATE cxx_std_20)
+
+    add_test(NAME extension_smoke COMMAND arma_attendance_smoke)
+endif()

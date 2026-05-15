@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project name="Arma Attendance">
+    <Package name="main">
+        <Key ID="STR_AASE_Module_DebugPoke">
+            <English>Attendance: Debug API Poke</English>
+        </Key>
+        <Key ID="STR_AASE_Module_DebugPoke_Description">
+            <English>Calls the server-side Arma Attendance extension debug poke command.</English>
+        </Key>
+    </Package>
+</Project>

@@ -1,0 +1,13 @@
+name = "Arma Attendance";
+picture = "";
+logo = "";
+logoOver = "";
+tooltip = "Arma Attendance";
+tooltipOwned = "Arma Attendance";
+overview = "Phase 0 debug bridge for Arma Attendance.";
+author = "JTM-rootstorm";
+overviewPicture = "";
+hideName = 0;
+hidePicture = 0;
+actionName = "GitHub";
+action = "https://github.com/JTM-rootstorm/arma-attendance-server-extension";

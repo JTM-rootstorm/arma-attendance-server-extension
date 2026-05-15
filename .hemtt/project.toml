@@ -1,0 +1,25 @@
+name = "Arma Attendance"
+prefix = "aase"
+mainprefix = "x"
+
+[version]
+major = 0
+minor = 1
+patch = 0
+git_hash = 8
+
+[files]
+include = [
+  "mod.cpp",
+  "meta.cpp",
+  "LICENSE",
+  "README.md"
+]
+
+[properties]
+author = "JTM-rootstorm"
+url = "https://github.com/JTM-rootstorm/arma-attendance-server-extension"
+
+[signing]
+authority = "arma_attendance"
+version = 3

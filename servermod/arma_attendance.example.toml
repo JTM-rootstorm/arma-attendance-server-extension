@@ -1,0 +1,15 @@
+# Arma Attendance server extension config template.
+# Copy this file to arma_attendance.toml on the dedicated server.
+# Never commit the real arma_attendance.toml.
+
+[server]
+server_key = "main-unit-server"
+
+[http]
+base_url = "https://stats.example.com"
+api_token = "replace-me"
+timeout_ms = 3000
+verify_tls = true
+
+[logging]
+level = "info"

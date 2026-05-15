@@ -1,0 +1,170 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  addon-hemtt:
+    name: HEMTT addon check/build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup HEMTT
+        uses: arma-actions/hemtt@v1
+
+      - name: HEMTT check
+        run: hemtt check
+
+      - name: HEMTT build
+        run: hemtt build
+
+      - name: Upload HEMTT build output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: addon-hemtt-output
+          path: .hemttout/**
+          if-no-files-found: ignore
+
+  extension-linux:
+    name: Linux extension .so
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build curl libcurl4-openssl-dev python3
+
+      - name: Configure
+        run: |
+          cmake -S extension -B build/extension-linux \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build/extension-linux --config Release
+
+      - name: Start mock API
+        run: |
+          python3 extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000 &
+          echo $! > mock-api.pid
+          sleep 2
+
+      - name: Smoke test
+        env:
+          AASE_BASE_URL: http://127.0.0.1:3000
+          AASE_API_TOKEN: dev-token
+          AASE_SERVER_KEY: ci-linux
+        run: ctest --test-dir build/extension-linux --output-on-failure
+
+      - name: Upload Linux extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: arma-attendance-extension-linux-x64
+          path: build/extension-linux/arma_attendance.so
+          if-no-files-found: error
+
+  extension-windows:
+    name: Windows extension _x64.dll
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bootstrap vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg "$env:RUNNER_TEMP\vcpkg"
+          & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+          "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Configure
+        run: |
+          cmake -S extension -B build/extension-windows `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
+
+      - name: Build
+        run: cmake --build build/extension-windows --config Release
+
+      - name: Start mock API
+        run: |
+          Start-Process -FilePath python -ArgumentList "extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000" -PassThru | Select-Object -ExpandProperty Id | Out-File mock-api.pid
+          Start-Sleep -Seconds 2
+
+      - name: Smoke test
+        env:
+          AASE_BASE_URL: http://127.0.0.1:3000
+          AASE_API_TOKEN: dev-token
+          AASE_SERVER_KEY: ci-windows
+        run: ctest --test-dir build/extension-windows -C Release --output-on-failure
+
+      - name: Upload Windows extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: arma-attendance-extension-windows-x64
+          path: build/extension-windows/**/arma_attendance_x64.dll
+          if-no-files-found: error
+
+  package-preview:
+    name: Package preview artifact
+    runs-on: ubuntu-latest
+    needs:
+      - addon-hemtt
+      - extension-linux
+      - extension-windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux extension
+        uses: actions/download-artifact@v4
+        with:
+          name: arma-attendance-extension-linux-x64
+          path: artifacts/linux
+
+      - name: Download Windows extension
+        uses: actions/download-artifact@v4
+        with:
+          name: arma-attendance-extension-windows-x64
+          path: artifacts/windows
+
+      - name: Download addon output
+        uses: actions/download-artifact@v4
+        with:
+          name: addon-hemtt-output
+          path: artifacts/addon-hemtt
+
+      - name: Assemble preview
+        run: |
+          mkdir -p package/@arma_attendance package/@arma_attendance_server
+          find artifacts/addon-hemtt -type f -name '*.pbo' -exec sh -c 'mkdir -p package/@arma_attendance/addons && cp "$1" package/@arma_attendance/addons/' sh {} \;
+          cp mod.cpp meta.cpp package/@arma_attendance/
+          find artifacts/linux -name 'arma_attendance.so' -exec cp {} package/@arma_attendance_server/ \;
+          find artifacts/windows -name 'arma_attendance_x64.dll' -exec cp {} package/@arma_attendance_server/ \;
+          cp servermod/arma_attendance.example.toml package/@arma_attendance_server/
+          cp servermod/README-server-install.txt package/@arma_attendance_server/
+          find package -maxdepth 4 -type f -print
+
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arma-attendance-phase0-package-preview
+          path: package/**
+          if-no-files-found: error
