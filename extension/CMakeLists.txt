@@ -22,6 +22,7 @@ target_include_directories(arma_attendance_core
 target_link_libraries(arma_attendance_core
     PUBLIC
         CURL::libcurl
+        ${CMAKE_DL_LIBS}
 )
 
 target_compile_features(arma_attendance_core PUBLIC cxx_std_20)

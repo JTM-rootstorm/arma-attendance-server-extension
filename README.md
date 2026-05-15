@@ -49,4 +49,4 @@ cmake --build build/extension-linux --config RelWithDebInfo
 ctest --test-dir build/extension-linux --output-on-failure
 ```
 
-The native extension reads config from environment variables first, then from `arma_attendance.toml` beside the extension binary when discoverable. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
+The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.

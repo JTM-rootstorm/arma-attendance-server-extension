@@ -74,3 +74,5 @@ ldd @arma_attendance_server/arma_attendance_x64.so
 ```
 
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
+
+The extension reads `arma_attendance.toml` from the loaded extension directory, such as `@arma_attendance_server/arma_attendance.toml`. If a server manager requires storing the file somewhere else, set `AASE_CONFIG_PATH` to the absolute TOML file path.
