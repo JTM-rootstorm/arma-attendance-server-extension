@@ -1,0 +1,58 @@
+name: Staging API poke
+
+on:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  staging-poke-linux:
+    name: Build Linux extension and poke staging API
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build curl libcurl4-openssl-dev python3
+
+      - name: Configure
+        run: |
+          cmake -S extension -B build/extension-linux \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build/extension-linux --config Release
+
+      - name: Start mock API
+        run: |
+          python3 extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000 &
+          echo $! > mock-api.pid
+          sleep 2
+
+      - name: Smoke test local command surface
+        env:
+          AASE_BASE_URL: http://127.0.0.1:3000
+          AASE_API_TOKEN: dev-token
+          AASE_SERVER_KEY: staging-smoke
+        run: ctest --test-dir build/extension-linux --output-on-failure
+
+      - name: Poke staging API
+        env:
+          AASE_BASE_URL: ${{ secrets.AASE_STAGING_BASE_URL }}
+          AASE_API_TOKEN: ${{ secrets.AASE_STAGING_API_TOKEN }}
+          AASE_SERVER_KEY: ${{ secrets.AASE_STAGING_SERVER_KEY }}
+        run: |
+          if [[ -z "$AASE_BASE_URL" || -z "$AASE_API_TOKEN" || -z "$AASE_SERVER_KEY" ]]; then
+            echo "Skipping deployed staging poke because AASE_STAGING_* secrets are not configured."
+            exit 0
+          fi
+          ./build/extension-linux/arma_attendance_smoke
