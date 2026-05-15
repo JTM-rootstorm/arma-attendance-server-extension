@@ -3,6 +3,7 @@
 #include "arma_attendance/json.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
 #include <fstream>
@@ -10,6 +11,12 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 
 namespace arma_attendance {
 namespace {
@@ -39,6 +46,31 @@ std::optional<std::string> GetEnv(std::string_view name) {
         }
     }
     return std::nullopt;
+}
+
+std::filesystem::path ExtensionModulePath() {
+#if defined(_WIN32)
+    HMODULE module = nullptr;
+    if (!GetModuleHandleExA(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            reinterpret_cast<LPCSTR>(&ExtensionModulePath),
+            &module)) {
+        return {};
+    }
+
+    std::array<char, MAX_PATH> buffer{};
+    const DWORD size = GetModuleFileNameA(module, buffer.data(), static_cast<DWORD>(buffer.size()));
+    if (size == 0 || size >= buffer.size()) {
+        return {};
+    }
+    return std::filesystem::path{buffer.data()};
+#else
+    Dl_info info{};
+    if (dladdr(reinterpret_cast<void*>(&ExtensionModulePath), &info) == 0 || info.dli_fname == nullptr) {
+        return {};
+    }
+    return std::filesystem::path{info.dli_fname};
+#endif
 }
 
 std::optional<bool> ParseBool(std::string value) {
@@ -128,6 +160,15 @@ void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
 }
 
 std::filesystem::path ConfigPath() {
+    if (auto value = GetEnv("AASE_CONFIG_PATH")) {
+        return std::filesystem::path{*value};
+    }
+
+    const auto module_path = ExtensionModulePath();
+    if (!module_path.empty() && module_path.has_parent_path()) {
+        return module_path.parent_path() / "arma_attendance.toml";
+    }
+
     return std::filesystem::current_path() / "arma_attendance.toml";
 }
 

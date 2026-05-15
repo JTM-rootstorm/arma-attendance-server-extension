@@ -55,7 +55,7 @@ class CfgVehicles {
         functionPriority = 1;
         isGlobal = 1;
         isTriggerActivated = 0;
-        isDisposable = 0;
+        isDisposable = 1;
         curatorCanAttach = 0;
 
         class Attributes: AttributesBase {};

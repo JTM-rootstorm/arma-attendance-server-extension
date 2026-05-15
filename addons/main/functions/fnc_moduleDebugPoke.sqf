@@ -13,3 +13,7 @@ private _message = format [
 private _result = [_message] call AASE_fnc_poke;
 
 [format ["Debug API poke result: %1", _result], "INFO"] call AASE_fnc_log;
+
+if (!isNull _logic) then {
+    deleteVehicle _logic;
+};

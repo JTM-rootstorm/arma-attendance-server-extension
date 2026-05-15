@@ -1,8 +1,10 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
 
 project(arma_attendance_extension VERSION 0.1.0 LANGUAGES CXX)
 
 include(CTest)
+
+option(AASE_STATIC_GNU_RUNTIME "Statically link GNU C++ runtime into Linux extension builds" ON)
 
 find_package(CURL REQUIRED)
 
@@ -20,6 +22,7 @@ target_include_directories(arma_attendance_core
 target_link_libraries(arma_attendance_core
     PUBLIC
         CURL::libcurl
+        ${CMAKE_DL_LIBS}
 )
 
 target_compile_features(arma_attendance_core PUBLIC cxx_std_20)
@@ -37,6 +40,10 @@ set_target_properties(arma_attendance PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+if(AASE_STATIC_GNU_RUNTIME AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(arma_attendance PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
 if(WIN32)
     set_target_properties(arma_attendance PROPERTIES
         PREFIX ""
@@ -48,6 +55,13 @@ else()
         PREFIX ""
         OUTPUT_NAME "arma_attendance"
         SUFFIX ".so"
+    )
+
+    add_custom_command(TARGET arma_attendance POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:arma_attendance>"
+            "$<TARGET_FILE_DIR:arma_attendance>/arma_attendance_x64.so"
+        COMMENT "Copying Linux x64 Arma extension alias"
     )
 endif()
 

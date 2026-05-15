@@ -23,6 +23,7 @@ The client/server addon and server-only extension are packaged separately:
 
 @arma_attendance_server/
   arma_attendance.so
+  arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
   README-server-install.txt
@@ -33,6 +34,8 @@ Recommended dedicated server launch shape:
 ```text
 -mod=@CBA_A3;@arma_attendance -serverMod=@arma_attendance_server
 ```
+
+If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@arma_attendance_server`. Then run `ldd @arma_attendance_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 
 ## Local Validation
 
@@ -46,4 +49,4 @@ cmake --build build/extension-linux --config RelWithDebInfo
 ctest --test-dir build/extension-linux --output-on-failure
 ```
 
-The native extension reads config from environment variables first, then from `arma_attendance.toml` beside the extension binary when discoverable. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
+The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.

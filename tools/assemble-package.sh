@@ -16,10 +16,16 @@ hemtt check
 hemtt build
 
 LINUX_SO="$(find "$ROOT/build" -name 'arma_attendance.so' -print -quit || true)"
+LINUX_X64_SO="$(find "$ROOT/build" -name 'arma_attendance_x64.so' -print -quit || true)"
 WIN_DLL="$(find "$ROOT/build" -name 'arma_attendance_x64.dll' -print -quit || true)"
 
 if [[ -z "$LINUX_SO" ]]; then
   echo "Missing Linux extension artifact: arma_attendance.so" >&2
+  exit 1
+fi
+
+if [[ -z "$LINUX_X64_SO" ]]; then
+  echo "Missing Linux x64 extension artifact: arma_attendance_x64.so" >&2
   exit 1
 fi
 
@@ -29,6 +35,7 @@ if [[ -z "$WIN_DLL" ]]; then
 fi
 
 cp "$LINUX_SO" "$SERVERMOD/"
+cp "$LINUX_X64_SO" "$SERVERMOD/"
 cp "$WIN_DLL" "$SERVERMOD/"
 cp "$ROOT/servermod/arma_attendance.example.toml" "$SERVERMOD/"
 cp "$ROOT/servermod/README-server-install.txt" "$SERVERMOD/"
