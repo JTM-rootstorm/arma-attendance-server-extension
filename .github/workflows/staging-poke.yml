@@ -1,4 +1,4 @@
-name: Manual staging API poke
+name: Staging API poke
 
 on:
   pull_request:
@@ -51,7 +51,8 @@ jobs:
           AASE_API_TOKEN: ${{ secrets.AASE_STAGING_API_TOKEN }}
           AASE_SERVER_KEY: ${{ secrets.AASE_STAGING_SERVER_KEY }}
         run: |
-          test -n "$AASE_BASE_URL"
-          test -n "$AASE_API_TOKEN"
-          test -n "$AASE_SERVER_KEY"
+          if [[ -z "$AASE_BASE_URL" || -z "$AASE_API_TOKEN" || -z "$AASE_SERVER_KEY" ]]; then
+            echo "Skipping deployed staging poke because AASE_STAGING_* secrets are not configured."
+            exit 0
+          fi
           ./build/extension-linux/arma_attendance_smoke
