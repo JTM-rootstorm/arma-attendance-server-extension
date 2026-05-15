@@ -23,11 +23,18 @@ class CfgFunctions {
     class AASE {
         class main {
             tag = "AASE";
-            file = "\x\aase\addons\main\functions";
-            class log {};
-            class callExtension {};
-            class poke {};
-            class moduleDebugPoke {};
+            class log {
+                file = "\x\aase\addons\main\functions\fnc_log.sqf";
+            };
+            class callExtension {
+                file = "\x\aase\addons\main\functions\fnc_callExtension.sqf";
+            };
+            class poke {
+                file = "\x\aase\addons\main\functions\fnc_poke.sqf";
+            };
+            class moduleDebugPoke {
+                file = "\x\aase\addons\main\functions\fnc_moduleDebugPoke.sqf";
+            };
         };
     };
 };
