@@ -60,7 +60,13 @@ The public addon may be loaded by clients and the server. The server extension p
 
 ## Linux Load Diagnostics
 
-If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. In the same container or host that runs `arma3server_x64`, run:
+If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. First verify `@arma_attendance_server` contains both Linux names:
+
+```bash
+ls -l @arma_attendance_server/arma_attendance.so @arma_attendance_server/arma_attendance_x64.so
+```
+
+Then, in the same container or host that runs `arma3server_x64`, run:
 
 ```bash
 file @arma_attendance_server/arma_attendance_x64.so
