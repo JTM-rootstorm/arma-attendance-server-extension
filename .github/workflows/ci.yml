@@ -44,49 +44,69 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
+      - name: Build and test in Ubuntu 20.04 container
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config python3
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            ubuntu:20.04 \
+            bash -lc '
+              set -euo pipefail
+              export DEBIAN_FRONTEND=noninteractive
 
-      - name: Bootstrap vcpkg
-        run: |
-          git clone --depth 1 https://github.com/microsoft/vcpkg "$RUNNER_TEMP/vcpkg"
-          "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
-          echo "VCPKG_ROOT=$RUNNER_TEMP/vcpkg" >> "$GITHUB_ENV"
+              apt-get update
+              apt-get install -y \
+                binutils \
+                build-essential \
+                ca-certificates \
+                cmake \
+                curl \
+                file \
+                g++-10 \
+                git \
+                ninja-build \
+                pkg-config \
+                python3 \
+                tar \
+                unzip \
+                zip
 
-      - name: Configure
-        run: |
-          cmake -S extension -B build/extension-linux \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET=x64-linux
+              git clone --depth 1 https://github.com/microsoft/vcpkg /tmp/vcpkg
+              /tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
-      - name: Build
-        run: cmake --build build/extension-linux --config Release
+              cmake -S extension -B build/extension-linux \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_TOOLCHAIN_FILE=/tmp/vcpkg/scripts/buildsystems/vcpkg.cmake \
+                -DVCPKG_TARGET_TRIPLET=x64-linux
 
-      - name: Audit Linux extension dependencies
-        run: |
-          file build/extension-linux/arma_attendance_x64.so
-          ldd build/extension-linux/arma_attendance_x64.so
-          if ldd build/extension-linux/arma_attendance_x64.so | grep -E 'libcurl|libstdc\+\+|libgcc_s'; then
-            echo "Linux extension still depends on libcurl/libstdc++/libgcc_s from the server image." >&2
-            exit 1
-          fi
+              cmake --build build/extension-linux --config Release
 
-      - name: Start mock API
-        run: |
-          python3 extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000 &
-          echo $! > mock-api.pid
-          sleep 2
+              file build/extension-linux/arma_attendance_x64.so
+              ldd build/extension-linux/arma_attendance_x64.so
+              if ldd build/extension-linux/arma_attendance_x64.so | grep -E "libcurl|libstdc\+\+|libgcc_s"; then
+                echo "Linux extension still depends on libcurl/libstdc++/libgcc_s from the server image." >&2
+                exit 1
+              fi
 
-      - name: Smoke test
-        env:
-          AASE_BASE_URL: http://127.0.0.1:3000
-          AASE_API_TOKEN: dev-token
-          AASE_SERVER_KEY: ci-linux
-        run: ctest --test-dir build/extension-linux --output-on-failure
+              echo "Required GLIBC symbol versions:"
+              objdump -T build/extension-linux/arma_attendance_x64.so | grep -Eo "GLIBC_[0-9]+\.[0-9]+" | sort -Vu
+              if objdump -T build/extension-linux/arma_attendance_x64.so | grep -E "GLIBC_2\.(3[2-9]|[4-9][0-9])"; then
+                echo "Linux extension requires GLIBC newer than 2.31." >&2
+                exit 1
+              fi
+
+              python3 extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000 &
+              mock_pid=$!
+              trap "kill $mock_pid" EXIT
+              sleep 2
+
+              AASE_BASE_URL=http://127.0.0.1:3000 \
+              AASE_API_TOKEN=dev-token \
+              AASE_SERVER_KEY=ci-linux \
+                ctest --test-dir build/extension-linux --output-on-failure
+            '
 
       - name: Upload Linux extension
         uses: actions/upload-artifact@v4

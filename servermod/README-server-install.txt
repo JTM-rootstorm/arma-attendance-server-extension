@@ -5,9 +5,12 @@
 5. In the same Linux container that runs arma3server_x64, run:
    ldd @arma_attendance_server/arma_attendance_x64.so
    If any dependency prints "not found", the extension cannot load until that dependency is installed or bundled.
-6. Copy @arma_attendance_server/arma_attendance.example.toml to @arma_attendance_server/arma_attendance.toml.
-7. Edit arma_attendance.toml with the real API base URL, API token, and server key.
-8. Launch with:
+6. In the same Linux container, run:
+   ldd --version
+   The packaged Linux extension is built for glibc 2.31 or newer.
+7. Copy @arma_attendance_server/arma_attendance.example.toml to @arma_attendance_server/arma_attendance.toml.
+8. Edit arma_attendance.toml with the real API base URL, API token, and server key.
+9. Launch with:
    -mod=@CBA_A3;@arma_attendance -serverMod=@arma_attendance_server
-9. In Zeus, place Attendance: Debug API Poke.
-10. Check the server RPT for the JSON response.
+10. In Zeus, place Attendance: Debug API Poke.
+11. Check the server RPT for the JSON response.

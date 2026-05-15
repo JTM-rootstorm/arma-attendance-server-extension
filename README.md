@@ -35,7 +35,7 @@ Recommended dedicated server launch shape:
 -mod=@CBA_A3;@arma_attendance -serverMod=@arma_attendance_server
 ```
 
-If the RPT says `Call extension 'arma_attendance' could not be loaded`, run `ldd @arma_attendance_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension.
+If the RPT says `Call extension 'arma_attendance' could not be loaded`, run `ldd @arma_attendance_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 
 ## Local Validation
 
