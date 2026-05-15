@@ -4,6 +4,8 @@ project(arma_attendance_extension VERSION 0.1.0 LANGUAGES CXX)
 
 include(CTest)
 
+option(AASE_STATIC_GNU_RUNTIME "Statically link GNU C++ runtime into Linux extension builds" ON)
+
 find_package(CURL REQUIRED)
 
 add_library(arma_attendance_core STATIC
@@ -36,6 +38,10 @@ set_target_properties(arma_attendance PROPERTIES
     CXX_STANDARD_REQUIRED YES
     POSITION_INDEPENDENT_CODE ON
 )
+
+if(AASE_STATIC_GNU_RUNTIME AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(arma_attendance PRIVATE -static-libstdc++ -static-libgcc)
+endif()
 
 if(WIN32)
     set_target_properties(arma_attendance PROPERTIES

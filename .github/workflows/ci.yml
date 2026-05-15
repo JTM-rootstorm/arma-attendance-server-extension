@@ -47,16 +47,33 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build curl libcurl4-openssl-dev python3
+          sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config python3
+
+      - name: Bootstrap vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg "$RUNNER_TEMP/vcpkg"
+          "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$RUNNER_TEMP/vcpkg" >> "$GITHUB_ENV"
 
       - name: Configure
         run: |
           cmake -S extension -B build/extension-linux \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-linux
 
       - name: Build
         run: cmake --build build/extension-linux --config Release
+
+      - name: Audit Linux extension dependencies
+        run: |
+          file build/extension-linux/arma_attendance_x64.so
+          ldd build/extension-linux/arma_attendance_x64.so
+          if ldd build/extension-linux/arma_attendance_x64.so | grep -E 'libcurl|libstdc\+\+|libgcc_s'; then
+            echo "Linux extension still depends on libcurl/libstdc++/libgcc_s from the server image." >&2
+            exit 1
+          fi
 
       - name: Start mock API
         run: |

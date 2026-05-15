@@ -5,6 +5,7 @@ Phase 0 CI proves three things without private key material:
 - HEMTT can check and build the addon skeleton.
 - Linux produces `arma_attendance.so` and `arma_attendance_x64.so`.
 - Windows produces `arma_attendance_x64.dll`.
+- Linux artifacts do not depend on server-provided `libcurl`, `libstdc++`, or `libgcc_s`.
 
 CI preview artifacts are intentionally unsigned. Trusted local signing remains a manual step until the installed HEMTT key-reuse behavior is confirmed on the dev machine.
 
@@ -55,3 +56,14 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 ```
 
 The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
+
+## Linux Load Diagnostics
+
+If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. In the same container or host that runs `arma3server_x64`, run:
+
+```bash
+file @arma_attendance_server/arma_attendance_x64.so
+ldd @arma_attendance_server/arma_attendance_x64.so
+```
+
+The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
