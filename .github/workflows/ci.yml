@@ -66,10 +66,14 @@ jobs:
                 git \
                 ninja-build \
                 pkg-config \
+                python3-pip \
                 python3 \
                 tar \
                 unzip \
                 zip
+
+              python3 -m pip install --no-cache-dir "cmake>=3.28,<3.29"
+              cmake --version
 
               git clone --depth 1 https://github.com/microsoft/vcpkg /tmp/vcpkg
               /tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics
