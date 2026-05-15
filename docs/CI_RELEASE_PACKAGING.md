@@ -3,7 +3,7 @@
 Phase 0 CI proves three things without private key material:
 
 - HEMTT can check and build the addon skeleton.
-- Linux produces `arma_attendance.so`.
+- Linux produces `arma_attendance.so` and `arma_attendance_x64.so`.
 - Windows produces `arma_attendance_x64.dll`.
 
 CI preview artifacts are intentionally unsigned. Trusted local signing remains a manual step until the installed HEMTT key-reuse behavior is confirmed on the dev machine.
@@ -48,6 +48,7 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 
 @arma_attendance_server/
   arma_attendance.so
+  arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
   README-server-install.txt

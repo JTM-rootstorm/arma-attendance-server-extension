@@ -23,6 +23,7 @@ The client/server addon and server-only extension are packaged separately:
 
 @arma_attendance_server/
   arma_attendance.so
+  arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
   README-server-install.txt
