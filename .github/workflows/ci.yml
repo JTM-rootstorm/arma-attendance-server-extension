@@ -101,15 +101,7 @@ jobs:
                 exit 1
               fi
 
-              python3 extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000 &
-              mock_pid=$!
-              trap "kill $mock_pid" EXIT
-              sleep 2
-
-              AASE_BASE_URL=http://127.0.0.1:3000 \
-              AASE_API_TOKEN=dev-token \
-              AASE_SERVER_KEY=ci-linux \
-                ctest --test-dir build/extension-linux --output-on-failure
+              ctest --test-dir build/extension-linux --output-on-failure
             '
 
       - name: Upload Linux extension
@@ -148,16 +140,7 @@ jobs:
       - name: Build
         run: cmake --build build/extension-windows --config Release
 
-      - name: Start mock API
-        run: |
-          Start-Process -FilePath python -ArgumentList "extension/tests/mock_api_server.py --host 127.0.0.1 --port 3000" -PassThru | Select-Object -ExpandProperty Id | Out-File mock-api.pid
-          Start-Sleep -Seconds 2
-
       - name: Smoke test
-        env:
-          AASE_BASE_URL: http://127.0.0.1:3000
-          AASE_API_TOKEN: dev-token
-          AASE_SERVER_KEY: ci-windows
         run: ctest --test-dir build/extension-windows -C Release --output-on-failure
 
       - name: Upload Windows extension
@@ -167,8 +150,8 @@ jobs:
           path: build/extension-windows/**/arma_attendance_x64.dll
           if-no-files-found: error
 
-  package-preview:
-    name: Package preview artifact
+  release-preview:
+    name: Release preview artifact
     runs-on: ubuntu-latest
     needs:
       - addon-hemtt
@@ -198,19 +181,26 @@ jobs:
 
       - name: Assemble preview
         run: |
-          mkdir -p package/@arma_attendance package/@arma_attendance_server
+          mkdir -p package/@arma_attendance/addons package/@arma_attendance/keys package/@arma_attendance_server
           find artifacts/addon-hemtt -type f -name '*.pbo' -exec sh -c 'mkdir -p package/@arma_attendance/addons && cp "$1" package/@arma_attendance/addons/' sh {} \;
+          find artifacts/addon-hemtt -type f -name '*.bisign' -exec cp {} package/@arma_attendance/addons/ \;
           cp mod.cpp meta.cpp package/@arma_attendance/
           find artifacts/linux -name 'arma_attendance.so' -exec cp {} package/@arma_attendance_server/ \;
           find artifacts/linux -name 'arma_attendance_x64.so' -exec cp {} package/@arma_attendance_server/ \;
           find artifacts/windows -name 'arma_attendance_x64.dll' -exec cp {} package/@arma_attendance_server/ \;
           cp servermod/arma_attendance.example.toml package/@arma_attendance_server/
+          cp servermod/README-server-install.md package/@arma_attendance_server/
           cp servermod/README-server-install.txt package/@arma_attendance_server/
+          (cd package && find . -type f ! -name checksums.sha256 -print0 | sort -z | xargs -0 sha256sum > @arma_attendance_server/checksums.sha256)
+          if find package \( -name '*.biprivatekey' -o -name '*.hemttprivatekey' -o -name 'arma_attendance.toml' -o -name '.env' -o -name '.env.*' \) | grep -q .; then
+            echo "Preview package contains forbidden private material or real config." >&2
+            exit 1
+          fi
           find package -maxdepth 4 -type f -print
 
       - name: Upload preview package
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-phase0-package-preview
+          name: arma-attendance-extension-release-preview
           path: package/**
           if-no-files-found: error

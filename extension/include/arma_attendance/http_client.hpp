@@ -15,6 +15,7 @@ struct HttpResponse {
 };
 
 HttpResponse HttpGet(std::string_view path, const Config& config);
+HttpResponse HttpGetAuth(std::string_view path, const Config& config);
 HttpResponse HttpPostJson(std::string_view path, std::string_view body, const Config& config);
 
 } // namespace arma_attendance

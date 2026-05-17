@@ -13,6 +13,10 @@ struct Config {
     std::string server_key{"main-unit-server"};
     std::chrono::milliseconds timeout{3000};
     bool verify_tls{true};
+    bool queue_enabled{true};
+    std::filesystem::path queue_file{"arma_attendance_queue.ndjson"};
+    std::filesystem::path queue_sent_file{"arma_attendance_queue.sent.ndjson"};
+    int queue_max_attempts{25};
     std::filesystem::path source_path;
 };
 

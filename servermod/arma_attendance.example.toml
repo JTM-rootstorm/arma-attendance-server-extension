@@ -13,3 +13,9 @@ verify_tls = true
 
 [logging]
 level = "info"
+
+[queue]
+enabled = true
+queue_file = "arma_attendance_queue.ndjson"
+sent_file = "arma_attendance_queue.sent.ndjson"
+max_attempts = 25

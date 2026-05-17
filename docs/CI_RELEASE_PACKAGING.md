@@ -8,7 +8,7 @@ Phase 0 CI proves three things without private key material:
 - Linux artifacts do not depend on server-provided `libcurl`, `libstdc++`, or `libgcc_s`.
 - Linux artifacts are built in an Ubuntu 20.04 container and audited to avoid requiring GLIBC newer than 2.31.
 
-CI preview artifacts are intentionally unsigned. Trusted local signing remains a manual step until the installed HEMTT key-reuse behavior is confirmed on the dev machine.
+CI preview artifacts are intentionally unsigned. Trusted local signing uses `hemtt release --no-archive`, which creates signed PBOs under `.hemttout/release` without copying private keys into the repo.
 
 ## Local Commands
 
@@ -21,6 +21,14 @@ cmake --build build/extension-linux --config RelWithDebInfo
 ctest --test-dir build/extension-linux --output-on-failure
 ```
 
+Release assembly:
+
+```bash
+tools/assemble_release.sh
+```
+
+The script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies generated/public `.bikey` files when present, rejects private key/config material in the package output, writes checksums, and creates `dist/arma-attendance-extension-v0.1.0-sprint1.zip` by default.
+
 ## Trusted Signing
 
 Private BI signing keys must stay outside this repository. Locate local keys under:
@@ -29,7 +37,7 @@ Private BI signing keys must stay outside this repository. Locate local keys und
 $HOME/Documents/Programming/bikey
 ```
 
-Before automating trusted signing, inspect the installed HEMTT behavior:
+The installed HEMTT behavior was checked with:
 
 ```bash
 hemtt --help
@@ -53,7 +61,9 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
+  README-server-install.md
   README-server-install.txt
+  checksums.sha256
 ```
 
 The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
@@ -76,3 +86,5 @@ ldd @arma_attendance_server/arma_attendance_x64.so
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
 
 The extension reads `arma_attendance.toml` from the loaded extension directory, such as `@arma_attendance_server/arma_attendance.toml`. If a server manager requires storing the file somewhere else, set `AASE_CONFIG_PATH` to the absolute TOML file path.
+
+Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the server process working directory unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Queue records store request bodies and metadata, never bearer tokens.

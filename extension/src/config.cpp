@@ -106,6 +106,17 @@ void ApplyEnv(Config& config) {
             config.verify_tls = *parsed;
         }
     }
+    if (auto value = GetEnv("AASE_QUEUE_ENABLED")) {
+        if (auto parsed = ParseBool(*value)) {
+            config.queue_enabled = *parsed;
+        }
+    }
+    if (auto value = GetEnv("AASE_QUEUE_FILE")) {
+        config.queue_file = *value;
+    }
+    if (auto value = GetEnv("AASE_QUEUE_SENT_FILE")) {
+        config.queue_sent_file = *value;
+    }
 }
 
 void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
@@ -154,6 +165,19 @@ void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
         } else if (section == "http" && key == "verify_tls") {
             if (auto parsed = ParseBool(value)) {
                 config.verify_tls = *parsed;
+            }
+        } else if (section == "queue" && key == "enabled") {
+            if (auto parsed = ParseBool(value)) {
+                config.queue_enabled = *parsed;
+            }
+        } else if (section == "queue" && key == "queue_file") {
+            config.queue_file = value;
+        } else if (section == "queue" && key == "sent_file") {
+            config.queue_sent_file = value;
+        } else if (section == "queue" && key == "max_attempts") {
+            try {
+                config.queue_max_attempts = std::clamp(std::stoi(value), 1, 1000);
+            } catch (...) {
             }
         }
     }
@@ -224,6 +248,10 @@ std::string RedactedConfigJson(const Config& config) {
            << ",\"base_url\":" << JsonString(config.base_url)
            << ",\"timeout_ms\":" << config.timeout.count()
            << ",\"verify_tls\":" << (config.verify_tls ? "true" : "false")
+           << ",\"queue_enabled\":" << (config.queue_enabled ? "true" : "false")
+           << ",\"queue_file\":" << JsonString(config.queue_file.string())
+           << ",\"queue_sent_file\":" << JsonString(config.queue_sent_file.string())
+           << ",\"queue_max_attempts\":" << config.queue_max_attempts
            << ",\"api_token_present\":" << (!config.api_token.empty() ? "true" : "false");
     if (!config.api_token.empty()) {
         output << ",\"api_token_preview\":" << JsonString(TokenPreview(config.api_token));

@@ -7,5 +7,17 @@
         <Key ID="STR_AASE_Module_DebugPoke_Description">
             <English>Calls the server-side Arma Attendance extension debug poke command.</English>
         </Key>
+        <Key ID="STR_AASE_Module_FinishOperation">
+            <English>Attendance: Finish Operation</English>
+        </Key>
+        <Key ID="STR_AASE_Module_FinishOperation_Description">
+            <English>Finishes the active Arma Attendance operation using a server-side player snapshot.</English>
+        </Key>
+        <Key ID="STR_AASE_Module_StartOperation">
+            <English>Attendance: Start Operation</English>
+        </Key>
+        <Key ID="STR_AASE_Module_StartOperation_Description">
+            <English>Starts an Arma Attendance operation using a server-side player snapshot.</English>
+        </Key>
     </Package>
 </Project>

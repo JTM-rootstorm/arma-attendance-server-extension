@@ -38,14 +38,17 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
     url += path;
 
     struct curl_slist* headers = nullptr;
-    if (method == "POST") {
+    if (method == "POST" || method == "GET_AUTH") {
         if (config.api_token.empty()) {
             curl_easy_cleanup(curl);
             return HttpResponse{false, 0, {}, "AASE_API_TOKEN is not configured."};
         }
-        headers = curl_slist_append(headers, "Content-Type: application/json");
         const std::string auth = "Authorization: Bearer " + config.api_token;
         headers = curl_slist_append(headers, auth.c_str());
+    }
+
+    if (method == "POST") {
+        headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.data());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
@@ -83,6 +86,10 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
 
 HttpResponse HttpGet(std::string_view path, const Config& config) {
     return Perform("GET", path, {}, config);
+}
+
+HttpResponse HttpGetAuth(std::string_view path, const Config& config) {
+    return Perform("GET_AUTH", path, {}, config);
 }
 
 HttpResponse HttpPostJson(std::string_view path, std::string_view body, const Config& config) {

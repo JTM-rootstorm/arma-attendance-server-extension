@@ -1,6 +1,6 @@
 # Arma Attendance Server Extension
 
-Phase 0 proves the minimal server-side path between an Arma 3 Zeus module and the external Arma Attendance web API:
+Phase 0 proved the minimal server-side path between an Arma 3 Zeus module and the external Arma Attendance web API:
 
 ```text
 CBA addon -> Zeus debug module -> server SQF -> callExtension -> native extension -> HTTP API poke
@@ -8,7 +8,7 @@ CBA addon -> Zeus debug module -> server SQF -> callExtension -> native extensio
 
 This repository owns only the Arma addon wrapper, Zeus/debug module plumbing, native server extension, CI, and release packaging. The website, API implementation, database, dashboards, and login flow are external to this repo.
 
-Phase 0 intentionally does not collect attendance, Steam IDs, player data, kills, deaths, vehicle kills, or mission framework events.
+The current sprint keeps that debug path intact while adding operation start/finish submission toward the web API documented in [docs/WEB_API_CONTRACT_CURRENT.md](docs/WEB_API_CONTRACT_CURRENT.md). Actual dedicated-server validation is not required for this sprint.
 
 ## Packages
 
@@ -26,7 +26,9 @@ The client/server addon and server-only extension are packaged separately:
   arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
+  README-server-install.md
   README-server-install.txt
+  checksums.sha256
 ```
 
 Recommended dedicated server launch shape:
@@ -39,6 +41,8 @@ If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify t
 
 ## Local Validation
 
+See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for the full local setup notes.
+
 ```bash
 export HEMTT_BI_TOOLS="/mnt/game_one/SteamLibrary/steamapps/common/Arma 3 Tools/"
 hemtt check
@@ -50,3 +54,27 @@ ctest --test-dir build/extension-linux --output-on-failure
 ```
 
 The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
+
+## Native Commands
+
+The extension currently supports:
+
+```text
+version
+reload_config
+config
+health
+poke
+operation_start
+operation_finish
+ingest_request_get
+operation_get
+operation_attendance_get
+queue_status
+queue_flush
+queue_compact
+```
+
+`operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
+
+Operation start and finish submissions are written to a local NDJSON queue before send when queueing is enabled. `queue_flush` retries pending records, while `queue_status` reports pending and sent counts.

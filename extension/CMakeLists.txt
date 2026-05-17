@@ -66,9 +66,18 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
     add_executable(arma_attendance_smoke tests/smoke_main.cpp)
     target_link_libraries(arma_attendance_smoke PRIVATE arma_attendance_core)
     target_compile_features(arma_attendance_smoke PRIVATE cxx_std_20)
 
-    add_test(NAME extension_smoke COMMAND arma_attendance_smoke)
+    add_test(
+        NAME extension_contract_smoke
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_contract_smoke.py
+            $<TARGET_FILE:arma_attendance_smoke>
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/mock_api_server.py
+    )
 endif()
