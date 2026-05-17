@@ -1,6 +1,6 @@
 # Arma Attendance Server Extension
 
-Phase 0 proves the minimal server-side path between an Arma 3 Zeus module and the external Arma Attendance web API:
+Phase 0 proved the minimal server-side path between an Arma 3 Zeus module and the external Arma Attendance web API:
 
 ```text
 CBA addon -> Zeus debug module -> server SQF -> callExtension -> native extension -> HTTP API poke
@@ -8,7 +8,7 @@ CBA addon -> Zeus debug module -> server SQF -> callExtension -> native extensio
 
 This repository owns only the Arma addon wrapper, Zeus/debug module plumbing, native server extension, CI, and release packaging. The website, API implementation, database, dashboards, and login flow are external to this repo.
 
-Phase 0 intentionally does not collect attendance, Steam IDs, player data, kills, deaths, vehicle kills, or mission framework events.
+The current sprint keeps that debug path intact while adding operation start/finish submission toward the web API documented in [docs/WEB_API_CONTRACT_CURRENT.md](docs/WEB_API_CONTRACT_CURRENT.md). Actual dedicated-server validation is not required for this sprint.
 
 ## Packages
 
@@ -38,6 +38,8 @@ Recommended dedicated server launch shape:
 If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@arma_attendance_server`. Then run `ldd @arma_attendance_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 
 ## Local Validation
+
+See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for the full local setup notes.
 
 ```bash
 export HEMTT_BI_TOOLS="/mnt/game_one/SteamLibrary/steamapps/common/Arma 3 Tools/"
