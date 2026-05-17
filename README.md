@@ -26,7 +26,9 @@ The client/server addon and server-only extension are packaged separately:
   arma_attendance_x64.so
   arma_attendance_x64.dll
   arma_attendance.example.toml
+  README-server-install.md
   README-server-install.txt
+  checksums.sha256
 ```
 
 Recommended dedicated server launch shape:
