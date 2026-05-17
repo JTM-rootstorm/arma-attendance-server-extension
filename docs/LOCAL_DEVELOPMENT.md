@@ -28,6 +28,8 @@ ctest --preset linux-relwithdebinfo
 
 The tests use a local mock API and the `AASE_*` environment variables. Keep real `arma_attendance.toml`, `.env` files, API tokens, and private BI keys out of the repo.
 
+`ctest` starts `extension/tests/mock_api_server.py` automatically through `extension/tests/run_contract_smoke.py`, so no deployed web service or Arma server is required for the native contract smoke.
+
 ## Adjacent Web Contract Checks
 
 The current contract doc was verified against the sibling checkout:

@@ -1,0 +1,11 @@
+{
+  "request_id": "ci:start:001",
+  "server_key": "ci-contract",
+  "payload_version": 1,
+  "mission": {
+    "mission_uid": "ci-world:ci-mission:001",
+    "mission_name": "CI Mission",
+    "world_name": "VR"
+  },
+  "players": []
+}

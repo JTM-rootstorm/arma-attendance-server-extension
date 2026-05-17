@@ -1,0 +1,24 @@
+{
+  "request_id": "ci:finish:stats:001",
+  "server_key": "ci-contract",
+  "payload_version": 1,
+  "players": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Smoke Alpha",
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": "",
+      "stats": {
+        "infantry_kills": 0,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 0,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
+    }
+  ]
+}
