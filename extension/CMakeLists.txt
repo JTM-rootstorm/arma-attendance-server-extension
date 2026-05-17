@@ -80,4 +80,20 @@ if(BUILD_TESTING)
             $<TARGET_FILE:arma_attendance_smoke>
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/mock_api_server.py
     )
+
+    add_test(
+        NAME presence_ledger_cases
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/presence_ledger_cases.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/presence-ledger-cases.json
+    )
+
+    add_test(
+        NAME attendance_record_fixture
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/validate_attendance_records.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation-with-attendance-records.example.json
+    )
 endif()

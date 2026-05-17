@@ -1,0 +1,57 @@
+{
+  "request_id": "ci:finish:attendance-records:001",
+  "server_key": "main-unit-server",
+  "payload_version": 1,
+  "operation_id": "00000000-0000-4000-8000-000000000001",
+  "mission": {
+    "mission_uid": "vr:presence-ledger:001",
+    "mission_name": "Presence Ledger Contract",
+    "world_name": "VR"
+  },
+  "players": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Smoke Alpha",
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": "",
+      "stats": {
+        "infantry_kills": 0,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 0,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
+    }
+  ],
+  "attendance_records": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Smoke Alpha",
+      "present_at_start": true,
+      "present_at_end": true,
+      "joined_after_start": false,
+      "operation_seconds": 3600,
+      "attended_seconds": 3600,
+      "missed_seconds": 0,
+      "attendance_ratio": 1,
+      "attendance_percent": 100,
+      "attendance_status": "full",
+      "attendance_credit": true,
+      "disconnect_count": 0,
+      "reconnect_count": 0,
+      "first_seen_offset": 0,
+      "last_seen_offset": 3600,
+      "last_disconnect_offset": -1,
+      "last_reconnect_offset": -1,
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": ""
+    }
+  ]
+}

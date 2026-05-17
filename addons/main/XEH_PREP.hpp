@@ -7,6 +7,15 @@
 [QFUNC(buildPlayersSnapshot), compileScript ["\x\aase\addons\main\functions\fnc_buildPlayersSnapshot.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationStartPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationStartPayload.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationFinishPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(presenceInit), compileScript ["\x\aase\addons\main\functions\fnc_presenceInit.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(presenceRegisterHandlers), compileScript ["\x\aase\addons\main\functions\fnc_presenceRegisterHandlers.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(presenceStartLoop), compileScript ["\x\aase\addons\main\functions\fnc_presenceStartLoop.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(presenceStopLoop), compileScript ["\x\aase\addons\main\functions\fnc_presenceStopLoop.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(markPlayerPresentFromUnit), compileScript ["\x\aase\addons\main\functions\fnc_markPlayerPresentFromUnit.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(markUidPresentPending), compileScript ["\x\aase\addons\main\functions\fnc_markUidPresentPending.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(markPlayerAbsent), compileScript ["\x\aase\addons\main\functions\fnc_markPlayerAbsent.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(presenceFinalizeForEnd), compileScript ["\x\aase\addons\main\functions\fnc_presenceFinalizeForEnd.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildAttendanceRecords), compileScript ["\x\aase\addons\main\functions\fnc_buildAttendanceRecords.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(extractJsonStringField), compileScript ["\x\aase\addons\main\functions\fnc_extractJsonStringField.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(operationStart), compileScript ["\x\aase\addons\main\functions\fnc_operationStart.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(operationFinish), compileScript ["\x\aase\addons\main\functions\fnc_operationFinish.sqf"]] call CBA_fnc_compileFunction;

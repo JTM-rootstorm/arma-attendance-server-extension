@@ -90,6 +90,16 @@ class Handler(BaseHTTPRequestHandler):
             if not request_id or not payload.get("server_key"):
                 self._json(400, {"ok": False, "error": {"code": "validation_failed"}})
                 return
+            attendance_error = self._attendance_records_error(payload)
+            if attendance_error:
+                self._json(
+                    400,
+                    {
+                        "ok": False,
+                        "error": {"code": "attendance_records_invalid", "message": attendance_error},
+                    },
+                )
+                return
             if request_id in requests_by_id:
                 response = dict(requests_by_id[request_id]["response"])
                 response["idempotent"] = True
@@ -166,6 +176,38 @@ class Handler(BaseHTTPRequestHandler):
                 "stats_seen": stats_seen if status == "finished" else 0,
             },
         }
+
+    def _attendance_records_error(self, payload):
+        records = payload.get("attendance_records")
+        if records is None:
+            return None
+        if not isinstance(records, list):
+            return "attendance_records must be an array"
+        required_fields = {
+            "player_uid",
+            "name",
+            "present_at_start",
+            "present_at_end",
+            "operation_seconds",
+            "attended_seconds",
+            "attendance_ratio",
+            "attendance_status",
+            "attendance_credit",
+        }
+        for index, record in enumerate(records):
+            if not isinstance(record, dict):
+                return f"attendance_records[{index}] must be an object"
+            missing = sorted(required_fields - set(record))
+            if missing:
+                return f"attendance_records[{index}] missing {','.join(missing)}"
+            if not str(record.get("player_uid", "")).strip():
+                return f"attendance_records[{index}] missing player_uid"
+            if record.get("attended_seconds", 0) < 0:
+                return f"attendance_records[{index}] has negative attended_seconds"
+            ratio = record.get("attendance_ratio", 0)
+            if ratio < 0 or ratio > 1:
+                return f"attendance_records[{index}] attendance_ratio outside 0..1"
+        return None
 
     def log_message(self, format, *args):
         return

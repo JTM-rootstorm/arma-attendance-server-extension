@@ -50,6 +50,33 @@ class CfgFunctions {
             class buildOperationFinishPayload {
                 file = "\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
             };
+            class presenceInit {
+                file = "\x\aase\addons\main\functions\fnc_presenceInit.sqf";
+            };
+            class presenceRegisterHandlers {
+                file = "\x\aase\addons\main\functions\fnc_presenceRegisterHandlers.sqf";
+            };
+            class presenceStartLoop {
+                file = "\x\aase\addons\main\functions\fnc_presenceStartLoop.sqf";
+            };
+            class presenceStopLoop {
+                file = "\x\aase\addons\main\functions\fnc_presenceStopLoop.sqf";
+            };
+            class markPlayerPresentFromUnit {
+                file = "\x\aase\addons\main\functions\fnc_markPlayerPresentFromUnit.sqf";
+            };
+            class markUidPresentPending {
+                file = "\x\aase\addons\main\functions\fnc_markUidPresentPending.sqf";
+            };
+            class markPlayerAbsent {
+                file = "\x\aase\addons\main\functions\fnc_markPlayerAbsent.sqf";
+            };
+            class presenceFinalizeForEnd {
+                file = "\x\aase\addons\main\functions\fnc_presenceFinalizeForEnd.sqf";
+            };
+            class buildAttendanceRecords {
+                file = "\x\aase\addons\main\functions\fnc_buildAttendanceRecords.sqf";
+            };
             class extractJsonStringField {
                 file = "\x\aase\addons\main\functions\fnc_extractJsonStringField.sqf";
             };
