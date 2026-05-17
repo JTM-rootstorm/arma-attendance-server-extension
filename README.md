@@ -52,3 +52,22 @@ ctest --test-dir build/extension-linux --output-on-failure
 ```
 
 The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
+
+## Native Commands
+
+The extension currently supports:
+
+```text
+version
+reload_config
+config
+health
+poke
+operation_start
+operation_finish
+ingest_request_get
+operation_get
+operation_attendance_get
+```
+
+`operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
