@@ -68,6 +68,11 @@ operation_finish
 ingest_request_get
 operation_get
 operation_attendance_get
+queue_status
+queue_flush
+queue_compact
 ```
 
 `operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
+
+Operation start and finish submissions are written to a local NDJSON queue before send when queueing is enabled. `queue_flush` retries pending records, while `queue_status` reports pending and sent counts.

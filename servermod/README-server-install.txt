@@ -13,4 +13,9 @@
 9. Launch with:
    -mod=@CBA_A3;@arma_attendance -serverMod=@arma_attendance_server
 10. In Zeus, place Attendance: Debug API Poke.
-11. Check the server RPT for the JSON response.
+11. Place Attendance: Start Operation, then Attendance: Finish Operation.
+12. Check the server RPT for JSON responses.
+13. Queue files live beside the extension by default:
+   arma_attendance_queue.ndjson
+   arma_attendance_queue.sent.ndjson
+   These files must not contain API tokens.

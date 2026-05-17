@@ -7,6 +7,8 @@
 #include <exception>
 #include <chrono>
 #include <cctype>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -118,6 +120,27 @@ std::string NormalizeOperationPayload(std::string body, const Config& config, st
     return body;
 }
 
+struct QueueRecord {
+    std::string queue_id;
+    std::string command;
+    std::string method;
+    std::string path;
+    std::string request_id;
+    std::string body;
+    int attempts{0};
+};
+
+struct QueueFlushResult {
+    int attempted{0};
+    int sent{0};
+    int remaining{0};
+    HttpResponse current_response;
+    bool has_current_response{false};
+    std::string last_error;
+};
+
+std::string HttpJson(std::string_view command, const HttpResponse& response);
+
 std::string UrlEncode(std::string_view value) {
     std::ostringstream encoded;
     encoded << std::uppercase << std::hex;
@@ -129,6 +152,247 @@ std::string UrlEncode(std::string_view value) {
         }
     }
     return encoded.str();
+}
+
+std::string ExtractJsonObjectField(std::string_view body, std::string_view field) {
+    const std::string needle = "\"" + std::string{field} + "\"";
+    const auto key = body.find(needle);
+    if (key == std::string_view::npos) {
+        return {};
+    }
+    const auto colon = body.find(':', key + needle.size());
+    if (colon == std::string_view::npos) {
+        return {};
+    }
+    const auto object_start = body.find('{', colon + 1);
+    if (object_start == std::string_view::npos) {
+        return {};
+    }
+
+    int depth = 0;
+    bool in_string = false;
+    bool escaped = false;
+    for (auto index = object_start; index < body.size(); ++index) {
+        const char ch = body[index];
+        if (in_string) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                in_string = false;
+            }
+            continue;
+        }
+        if (ch == '"') {
+            in_string = true;
+        } else if (ch == '{') {
+            ++depth;
+        } else if (ch == '}') {
+            --depth;
+            if (depth == 0) {
+                return std::string{body.substr(object_start, index - object_start + 1)};
+            }
+        }
+    }
+    return {};
+}
+
+int ExtractJsonIntField(std::string_view body, std::string_view field) {
+    const std::string needle = "\"" + std::string{field} + "\"";
+    const auto key = body.find(needle);
+    if (key == std::string_view::npos) {
+        return 0;
+    }
+    const auto colon = body.find(':', key + needle.size());
+    if (colon == std::string_view::npos) {
+        return 0;
+    }
+    const auto start = body.find_first_of("0123456789", colon + 1);
+    if (start == std::string_view::npos) {
+        return 0;
+    }
+    const auto end = body.find_first_not_of("0123456789", start);
+    try {
+        return std::stoi(std::string{body.substr(start, end == std::string_view::npos ? end : end - start)});
+    } catch (...) {
+        return 0;
+    }
+}
+
+std::string QueueRecordJson(const QueueRecord& record) {
+    std::ostringstream output;
+    output << "{\"queue_id\":" << JsonString(record.queue_id)
+           << ",\"attempts\":" << record.attempts
+           << ",\"command\":" << JsonString(record.command)
+           << ",\"method\":" << JsonString(record.method)
+           << ",\"path\":" << JsonString(record.path)
+           << ",\"request_id\":" << JsonString(record.request_id)
+           << ",\"body\":" << record.body
+           << "}";
+    return output.str();
+}
+
+QueueRecord MakeQueueRecord(std::string_view command, std::string path, std::string body) {
+    auto request_id = ExtractJsonStringField(body, "request_id");
+    if (request_id.empty()) {
+        request_id = MakeRequestId("queue", command);
+    }
+    return QueueRecord{
+        request_id,
+        std::string{command},
+        "POST",
+        std::move(path),
+        request_id,
+        std::move(body),
+        0,
+    };
+}
+
+std::vector<QueueRecord> LoadQueueRecords(const std::filesystem::path& path) {
+    std::vector<QueueRecord> records;
+    std::ifstream input{path};
+    if (!input) {
+        return records;
+    }
+
+    std::string line;
+    while (std::getline(input, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        QueueRecord record;
+        record.queue_id = ExtractJsonStringField(line, "queue_id");
+        record.command = ExtractJsonStringField(line, "command");
+        record.method = ExtractJsonStringField(line, "method");
+        record.path = ExtractJsonStringField(line, "path");
+        record.request_id = ExtractJsonStringField(line, "request_id");
+        record.body = ExtractJsonObjectField(line, "body");
+        record.attempts = ExtractJsonIntField(line, "attempts");
+        if (!record.queue_id.empty() && !record.path.empty() && !record.body.empty()) {
+            records.push_back(std::move(record));
+        }
+    }
+    return records;
+}
+
+void WriteQueueRecords(const std::filesystem::path& path, const std::vector<QueueRecord>& records) {
+    if (!path.parent_path().empty()) {
+        std::filesystem::create_directories(path.parent_path());
+    }
+    std::ofstream output{path, std::ios::trunc};
+    for (const auto& record : records) {
+        output << QueueRecordJson(record) << '\n';
+    }
+}
+
+void AppendQueueRecord(const std::filesystem::path& path, const QueueRecord& record) {
+    if (!path.parent_path().empty()) {
+        std::filesystem::create_directories(path.parent_path());
+    }
+    std::ofstream output{path, std::ios::app};
+    output << QueueRecordJson(record) << '\n';
+}
+
+QueueFlushResult FlushQueueInternal(const Config& config, std::string_view current_queue_id = {}) {
+    auto records = LoadQueueRecords(config.queue_file);
+    std::vector<QueueRecord> remaining;
+    QueueFlushResult result;
+
+    for (auto& record : records) {
+        ++result.attempted;
+        ++record.attempts;
+        const auto response = HttpPostJson(record.path, record.body, config);
+        if (record.queue_id == current_queue_id) {
+            result.current_response = response;
+            result.has_current_response = true;
+        }
+        if (response.ok) {
+            ++result.sent;
+            AppendQueueRecord(config.queue_sent_file, record);
+        } else {
+            if (!response.error.empty()) {
+                result.last_error = response.error;
+            } else {
+                result.last_error = "HTTP " + std::to_string(response.status);
+            }
+            if (record.attempts < config.queue_max_attempts) {
+                remaining.push_back(std::move(record));
+            }
+        }
+    }
+
+    result.remaining = static_cast<int>(remaining.size());
+    WriteQueueRecords(config.queue_file, remaining);
+    return result;
+}
+
+int CountQueueLines(const std::filesystem::path& path) {
+    std::ifstream input{path};
+    int count = 0;
+    std::string line;
+    while (std::getline(input, line)) {
+        if (!line.empty()) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+std::string QueueStatusJson(std::string_view command, const Config& config) {
+    std::ostringstream output;
+    output << "{\"ok\":true,\"command\":" << JsonString(command)
+           << ",\"queued_count\":" << CountQueueLines(config.queue_file)
+           << ",\"sent_count\":" << CountQueueLines(config.queue_sent_file)
+           << ",\"queue_file\":" << JsonString(config.queue_file.string())
+           << ",\"sent_file\":" << JsonString(config.queue_sent_file.string())
+           << "}";
+    return output.str();
+}
+
+std::string QueueFlushJson(std::string_view command, const QueueFlushResult& result) {
+    std::ostringstream output;
+    output << "{\"ok\":" << (result.remaining == 0 ? "true" : "false")
+           << ",\"command\":" << JsonString(command)
+           << ",\"attempted\":" << result.attempted
+           << ",\"sent\":" << result.sent
+           << ",\"remaining\":" << result.remaining;
+    if (!result.last_error.empty()) {
+        output << ",\"last_error\":" << JsonString(result.last_error);
+    }
+    output << "}";
+    return output.str();
+}
+
+std::string SendOperationWithQueue(std::string_view command, std::string path, std::string body, const Config& config) {
+    if (!config.queue_enabled) {
+        return HttpJson(command, HttpPostJson(path, body, config));
+    }
+
+    auto record = MakeQueueRecord(command, std::move(path), std::move(body));
+    const auto queue_id = record.queue_id;
+    AppendQueueRecord(config.queue_file, record);
+    const auto flush = FlushQueueInternal(config, queue_id);
+    if (flush.has_current_response && flush.current_response.ok) {
+        return HttpJson(command, flush.current_response);
+    }
+
+    std::ostringstream output;
+    output << "{\"ok\":false,\"command\":" << JsonString(command)
+           << ",\"queued\":true"
+           << ",\"queue_id\":" << JsonString(queue_id)
+           << ",\"attempted\":" << flush.attempted
+           << ",\"sent\":" << flush.sent
+           << ",\"remaining\":" << flush.remaining;
+    if (flush.has_current_response) {
+        output << ",\"http_status\":" << flush.current_response.status;
+        if (!flush.current_response.error.empty()) {
+            output << ",\"error\":{\"code\":\"http_request_failed\",\"message\":"
+                   << JsonString(flush.current_response.error) << "}";
+        }
+    }
+    output << "}";
+    return output.str();
 }
 
 std::string HttpJson(std::string_view command, const HttpResponse& response) {
@@ -218,7 +482,7 @@ std::string ExecuteCommand(std::string_view command, std::span<const std::string
                 return InvalidJson(command);
             }
             body = NormalizeOperationPayload(std::move(body), config, "start");
-            return HttpJson(command, HttpPostJson("/v1/operations/start", body, config));
+            return SendOperationWithQueue(command, "/v1/operations/start", body, config);
         }
 
         if (command == "operation_finish") {
@@ -248,7 +512,24 @@ std::string ExecuteCommand(std::string_view command, std::span<const std::string
                 return InvalidJson(command);
             }
             body = NormalizeOperationPayload(std::move(body), config, "finish");
-            return HttpJson(command, HttpPostJson("/v1/operations/" + UrlEncode(operation_id) + "/finish", body, config));
+            return SendOperationWithQueue(
+                command,
+                "/v1/operations/" + UrlEncode(operation_id) + "/finish",
+                body,
+                config);
+        }
+
+        if (command == "queue_status") {
+            return QueueStatusJson(command, config);
+        }
+
+        if (command == "queue_flush") {
+            return QueueFlushJson(command, FlushQueueInternal(config));
+        }
+
+        if (command == "queue_compact") {
+            WriteQueueRecords(config.queue_file, LoadQueueRecords(config.queue_file));
+            return QueueStatusJson(command, config);
         }
 
         if (command == "ingest_request_get") {

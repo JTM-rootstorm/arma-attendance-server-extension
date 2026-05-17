@@ -76,3 +76,5 @@ ldd @arma_attendance_server/arma_attendance_x64.so
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
 
 The extension reads `arma_attendance.toml` from the loaded extension directory, such as `@arma_attendance_server/arma_attendance.toml`. If a server manager requires storing the file somewhere else, set `AASE_CONFIG_PATH` to the absolute TOML file path.
+
+Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the server process working directory unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Queue records store request bodies and metadata, never bearer tokens.

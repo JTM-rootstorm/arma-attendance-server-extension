@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -68,10 +69,20 @@ void SetEnv(const char* name, const char* value) {
 
 int main(int argc, char** argv) {
     bool ok = true;
+    const char* original_base_url = std::getenv("AASE_BASE_URL");
+    const std::string base_url = original_base_url == nullptr ? "http://127.0.0.1:3000" : original_base_url;
+    std::filesystem::path queue_path;
+    std::filesystem::path sent_path;
 
     if (argc > 0 && argv[0] != nullptr) {
         const auto executable_path = std::filesystem::absolute(argv[0]);
         const auto config_path = executable_path.parent_path() / "arma_attendance.toml";
+        queue_path = executable_path.parent_path() / "arma_attendance_queue_test.ndjson";
+        sent_path = executable_path.parent_path() / "arma_attendance_queue_test.sent.ndjson";
+        std::filesystem::remove(queue_path);
+        std::filesystem::remove(sent_path);
+        SetEnv("AASE_QUEUE_FILE", queue_path.string().c_str());
+        SetEnv("AASE_QUEUE_SENT_FILE", sent_path.string().c_str());
         std::ofstream config{config_path};
         config << "[server]\n"
                << "server_key = \"smoke-file-server\"\n"
@@ -150,6 +161,36 @@ int main(int argc, char** argv) {
     ok = ExpectNoToken(bad_auth) && ok;
     SetEnv("AASE_API_TOKEN", "dev-token");
     arma_attendance::ExecuteCommand("reload_config");
+
+    SetEnv("AASE_BASE_URL", "http://127.0.0.1:9");
+    arma_attendance::ExecuteCommand("reload_config");
+    const std::vector<std::string> offline_args{
+        "{\"request_id\":\"ci:start:offline\",\"payload_version\":1,\"players\":[]}"};
+    const auto offline_start = arma_attendance::ExecuteCommand("operation_start", offline_args);
+    if (!Contains(offline_start, "\"queued\":true")) {
+        std::cerr << "operation_start offline queue check failed: " << offline_start << '\n';
+        ok = false;
+    }
+
+    const auto queue_status = arma_attendance::ExecuteCommand("queue_status");
+    ok = ExpectOk("queue_status", queue_status) && ok;
+    ok = Contains(queue_status, "\"queued_count\":1") && ok;
+    if (!queue_path.empty()) {
+        std::ifstream queue_file{queue_path};
+        std::string queue_contents{
+            std::istreambuf_iterator<char>{queue_file},
+            std::istreambuf_iterator<char>{}};
+        ok = ExpectNoToken(queue_contents) && ok;
+    }
+
+    SetEnv("AASE_BASE_URL", base_url.c_str());
+    arma_attendance::ExecuteCommand("reload_config");
+    const auto queue_flush = arma_attendance::ExecuteCommand("queue_flush");
+    ok = ExpectOk("queue_flush", queue_flush) && ok;
+    ok = Contains(queue_flush, "\"remaining\":0") && ok;
+
+    const auto queue_compact = arma_attendance::ExecuteCommand("queue_compact");
+    ok = ExpectOk("queue_compact", queue_compact) && ok;
 
     return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }
