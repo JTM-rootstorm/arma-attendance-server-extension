@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
 
     const std::vector<std::string> finish_args{
         operation_id,
-        "{\"request_id\":\"ci:finish:001\",\"payload_version\":1,\"players\":[{\"player_uid\":\"76561198000000000\",\"name\":\"Smoke Alpha\",\"stats\":{\"infantry_kills\":0,\"vehicle_kills\":0,\"player_kills\":0,\"ai_kills\":0,\"friendly_kills\":0,\"deaths\":0}}]}"};
+        R"json({"request_id":"ci:finish:001","payload_version":1,"players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json"};
     const auto operation_finish = arma_attendance::ExecuteCommand("operation_finish", finish_args);
     ok = ExpectOk("operation_finish", operation_finish) && ok;
     ok = Contains(operation_finish, "\"status\":\"finished\"") && ok;

@@ -142,11 +142,36 @@ Recommended extension payload:
         "deaths": 0
       }
     }
+  ],
+  "attendance_records": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Example Player",
+      "present_at_start": true,
+      "present_at_end": true,
+      "joined_after_start": false,
+      "operation_seconds": 3600,
+      "attended_seconds": 3600,
+      "missed_seconds": 0,
+      "attendance_ratio": 1,
+      "attendance_percent": 100,
+      "attendance_status": "full",
+      "attendance_credit": true,
+      "disconnect_count": 0,
+      "reconnect_count": 0,
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": ""
+    }
   ]
 }
 ```
 
 Expected success shape is similar to start, with `status: "finished"` and `normalized.stats_seen` reflecting players with stats.
+
+`players` remains the compatibility snapshot for players physically present at finish. `attendance_records` is the full operation ledger and should include every UID known to the server during the operation, including players who disconnected before finish.
 
 ## Normalized Player Fields
 

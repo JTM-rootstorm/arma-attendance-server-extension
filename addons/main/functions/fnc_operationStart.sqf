@@ -16,6 +16,7 @@ if (_operationId isNotEqualTo "") then {
     missionNamespace setVariable ["AASE_operationId", _operationId, false];
     missionNamespace setVariable ["AASE_operationStartRequestId", _payload get "request_id", false];
     missionNamespace setVariable ["AASE_operationMissionUid", _mission getOrDefault ["mission_uid", ""], false];
+    [_operationId, 0.5] call AASE_fnc_presenceInit;
     [format ["Operation started: %1", _operationId], "INFO"] call AASE_fnc_log;
 } else {
     [format ["Operation start did not return operation_id: %1", _result], "ERROR"] call AASE_fnc_log;

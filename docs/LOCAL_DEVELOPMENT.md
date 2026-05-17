@@ -30,6 +30,8 @@ The tests use a local mock API and the `AASE_*` environment variables. Keep real
 
 `ctest` starts `extension/tests/mock_api_server.py` automatically through `extension/tests/run_contract_smoke.py`, so no deployed web service or Arma server is required for the native contract smoke.
 
+`ctest` also validates the presence-ledger math with `extension/tests/presence_ledger_cases.py` and checks the finish payload fixture with top-level `attendance_records`.
+
 ## Adjacent Web Contract Checks
 
 The current contract doc was verified against the sibling checkout:

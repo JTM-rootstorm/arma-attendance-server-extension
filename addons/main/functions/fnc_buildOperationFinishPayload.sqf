@@ -8,5 +8,6 @@ createHashMapFromArray [
     ["payload_version", 1],
     ["mission", _mission],
     ["operation_id", _operationId],
-    ["players", [true] call AASE_fnc_buildPlayersSnapshot]
+    ["players", [true] call AASE_fnc_buildPlayersSnapshot],
+    ["attendance_records", [] call AASE_fnc_buildAttendanceRecords]
 ]

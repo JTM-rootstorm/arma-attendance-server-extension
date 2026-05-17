@@ -1,0 +1,164 @@
+[
+  {
+    "name": "present at start and present at end",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-a", "name": "Alpha", "at": 0, "present_at_start": true}
+    ],
+    "expect": {
+      "uid-a": {
+        "attended_seconds": 3600,
+        "present_at_start": true,
+        "present_at_end": true,
+        "joined_after_start": false,
+        "attendance_ratio": 1.0,
+        "attendance_status": "full",
+        "attendance_credit": true,
+        "disconnect_count": 0,
+        "reconnect_count": 0
+      }
+    }
+  },
+  {
+    "name": "late join above threshold",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-b", "name": "Bravo", "at": 600}
+    ],
+    "expect": {
+      "uid-b": {
+        "attended_seconds": 3000,
+        "present_at_start": false,
+        "present_at_end": true,
+        "joined_after_start": true,
+        "attendance_ratio": 0.8333333333,
+        "attendance_status": "partial",
+        "attendance_credit": true,
+        "disconnect_count": 0,
+        "reconnect_count": 0
+      }
+    }
+  },
+  {
+    "name": "late join below threshold",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-c", "name": "Charlie", "at": 3000}
+    ],
+    "expect": {
+      "uid-c": {
+        "attended_seconds": 600,
+        "present_at_start": false,
+        "present_at_end": true,
+        "joined_after_start": true,
+        "attendance_ratio": 0.1666666667,
+        "attendance_status": "absent",
+        "attendance_credit": false,
+        "disconnect_count": 0,
+        "reconnect_count": 0
+      }
+    }
+  },
+  {
+    "name": "disconnect never returns",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-d", "name": "Delta", "at": 0, "present_at_start": true},
+      {"type": "absent", "uid": "uid-d", "name": "Delta", "at": 1200, "reason": "disconnect"}
+    ],
+    "expect": {
+      "uid-d": {
+        "attended_seconds": 1200,
+        "present_at_start": true,
+        "present_at_end": false,
+        "joined_after_start": false,
+        "attendance_ratio": 0.3333333333,
+        "attendance_status": "absent",
+        "attendance_credit": false,
+        "disconnect_count": 1,
+        "reconnect_count": 0
+      }
+    }
+  },
+  {
+    "name": "disconnect and reconnect",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-e", "name": "Echo", "at": 0, "present_at_start": true},
+      {"type": "absent", "uid": "uid-e", "name": "Echo", "at": 900, "reason": "disconnect"},
+      {"type": "pending_present", "uid": "uid-e", "name": "Echo", "at": 1800}
+    ],
+    "expect": {
+      "uid-e": {
+        "attended_seconds": 2700,
+        "present_at_start": true,
+        "present_at_end": true,
+        "joined_after_start": false,
+        "attendance_ratio": 0.75,
+        "attendance_status": "partial",
+        "attendance_credit": true,
+        "disconnect_count": 1,
+        "reconnect_count": 1
+      }
+    }
+  },
+  {
+    "name": "duplicate disconnect does not double count seconds",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-f", "name": "Foxtrot", "at": 0, "present_at_start": true},
+      {"type": "absent", "uid": "uid-f", "name": "Foxtrot", "at": 1000, "reason": "disconnect"},
+      {"type": "absent", "uid": "uid-f", "name": "Foxtrot", "at": 1100, "reason": "disconnect"}
+    ],
+    "expect": {
+      "uid-f": {
+        "attended_seconds": 1000,
+        "present_at_start": true,
+        "present_at_end": false,
+        "joined_after_start": false,
+        "attendance_ratio": 0.2777777778,
+        "attendance_status": "absent",
+        "attendance_credit": false,
+        "disconnect_count": 2,
+        "reconnect_count": 0
+      }
+    }
+  },
+  {
+    "name": "duplicate reconnect does not restart active interval",
+    "operation_start": 0,
+    "operation_end": 3600,
+    "threshold": 0.5,
+    "events": [
+      {"type": "present_from_unit", "uid": "uid-g", "name": "Golf", "at": 0, "present_at_start": true},
+      {"type": "absent", "uid": "uid-g", "name": "Golf", "at": 1000, "reason": "disconnect"},
+      {"type": "pending_present", "uid": "uid-g", "name": "Golf", "at": 1500},
+      {"type": "pending_present", "uid": "uid-g", "name": "Golf", "at": 1600}
+    ],
+    "expect": {
+      "uid-g": {
+        "attended_seconds": 3100,
+        "present_at_start": true,
+        "present_at_end": true,
+        "joined_after_start": false,
+        "attendance_ratio": 0.8611111111,
+        "attendance_status": "partial",
+        "attendance_credit": true,
+        "disconnect_count": 1,
+        "reconnect_count": 1
+      }
+    }
+  }
+]
