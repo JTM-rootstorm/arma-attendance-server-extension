@@ -2,3 +2,13 @@
 [QFUNC(callExtension), compileScript ["\x\aase\addons\main\functions\fnc_callExtension.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(poke), compileScript ["\x\aase\addons\main\functions\fnc_poke.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(moduleDebugPoke), compileScript ["\x\aase\addons\main\functions\fnc_moduleDebugPoke.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildMissionPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildMissionPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildPlayerSnapshot), compileScript ["\x\aase\addons\main\functions\fnc_buildPlayerSnapshot.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildPlayersSnapshot), compileScript ["\x\aase\addons\main\functions\fnc_buildPlayersSnapshot.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildOperationStartPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationStartPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildOperationFinishPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(extractJsonStringField), compileScript ["\x\aase\addons\main\functions\fnc_extractJsonStringField.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(operationStart), compileScript ["\x\aase\addons\main\functions\fnc_operationStart.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(operationFinish), compileScript ["\x\aase\addons\main\functions\fnc_operationFinish.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(moduleStartOperation), compileScript ["\x\aase\addons\main\functions\fnc_moduleStartOperation.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(moduleFinishOperation), compileScript ["\x\aase\addons\main\functions\fnc_moduleFinishOperation.sqf"]] call CBA_fnc_compileFunction;
