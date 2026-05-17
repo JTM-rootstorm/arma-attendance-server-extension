@@ -11,6 +11,18 @@ requests_by_id = {}
 operations = {}
 
 
+def remove_prefix(value, prefix):
+    if value.startswith(prefix):
+        return value[len(prefix) :]
+    return value
+
+
+def remove_suffix(value, suffix):
+    if value.endswith(suffix):
+        return value[: -len(suffix)]
+    return value
+
+
 class Handler(BaseHTTPRequestHandler):
     def _json(self, status, payload):
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
@@ -29,7 +41,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(401, {"ok": False, "error": {"code": "unauthorized"}})
             return
         if path.startswith("/v1/ingest-requests/"):
-            request_id = unquote(path.removeprefix("/v1/ingest-requests/"))
+            request_id = unquote(remove_prefix(path, "/v1/ingest-requests/"))
             saved = requests_by_id.get(request_id)
             if saved is None:
                 self._json(404, {"ok": False, "error": {"code": "ingest_request_not_found"}})
@@ -37,14 +49,14 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "ingest_request": saved})
             return
         if path.startswith("/v1/operations/") and path.endswith("/attendance"):
-            operation_id = path.removeprefix("/v1/operations/").removesuffix("/attendance").strip("/")
+            operation_id = remove_suffix(remove_prefix(path, "/v1/operations/"), "/attendance").strip("/")
             if operation_id not in operations:
                 self._json(404, {"ok": False, "error": {"code": "operation_not_found"}})
                 return
             self._json(200, {"ok": True, "operation_id": operation_id, "attendance": []})
             return
         if path.startswith("/v1/operations/"):
-            operation_id = path.removeprefix("/v1/operations/").strip("/")
+            operation_id = remove_prefix(path, "/v1/operations/").strip("/")
             operation = operations.get(operation_id)
             if operation is None:
                 self._json(404, {"ok": False, "error": {"code": "operation_not_found"}})
@@ -101,7 +113,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/operations/") and path.endswith("/finish"):
-            operation_id = path.removeprefix("/v1/operations/").removesuffix("/finish").strip("/")
+            operation_id = remove_suffix(remove_prefix(path, "/v1/operations/"), "/finish").strip("/")
             if operation_id not in operations:
                 self._json(404, {"ok": False, "error": {"code": "operation_not_found"}})
                 return
