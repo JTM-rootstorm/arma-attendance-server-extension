@@ -172,7 +172,7 @@ void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
             }
         } else if (section == "queue" && key == "queue_file") {
             config.queue_file = value;
-        } else if (section == "queue" && key == "sent_file") {
+        } else if (section == "queue" && (key == "queue_sent_file" || key == "sent_file")) {
             config.queue_sent_file = value;
         } else if (section == "queue" && key == "max_attempts") {
             try {

@@ -70,6 +70,63 @@ bool JsonObjectHasField(std::string_view body, std::string_view field) {
     return body.find("\"" + std::string{field} + "\"") != std::string_view::npos;
 }
 
+size_t JsonValueEnd(std::string_view body, size_t start) {
+    start = body.find_first_not_of(" \t\r\n", start);
+    if (start == std::string_view::npos) {
+        return std::string_view::npos;
+    }
+
+    const char leading = body[start];
+    if (leading == '"') {
+        bool escaped = false;
+        for (auto index = start + 1; index < body.size(); ++index) {
+            const char ch = body[index];
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                return index + 1;
+            }
+        }
+        return std::string_view::npos;
+    }
+
+    if (leading == '{' || leading == '[') {
+        const char closing = leading == '{' ? '}' : ']';
+        int depth = 0;
+        bool in_string = false;
+        bool escaped = false;
+        for (auto index = start; index < body.size(); ++index) {
+            const char ch = body[index];
+            if (in_string) {
+                if (escaped) {
+                    escaped = false;
+                } else if (ch == '\\') {
+                    escaped = true;
+                } else if (ch == '"') {
+                    in_string = false;
+                }
+                continue;
+            }
+            if (ch == '"') {
+                in_string = true;
+            } else if (ch == leading) {
+                ++depth;
+            } else if (ch == closing) {
+                --depth;
+                if (depth == 0) {
+                    return index + 1;
+                }
+            }
+        }
+        return std::string_view::npos;
+    }
+
+    const auto end = body.find_first_of(",}", start);
+    return end == std::string_view::npos ? body.size() : end;
+}
+
 std::string AddJsonFieldIfMissing(std::string body, std::string_view field, std::string_view encoded_value) {
     if (JsonObjectHasField(body, field)) {
         return body;
@@ -87,6 +144,28 @@ std::string AddJsonFieldIfMissing(std::string body, std::string_view field, std:
         field_text += ",";
     }
     body.insert(insert_at, field_text);
+    return body;
+}
+
+std::string SetJsonField(std::string body, std::string_view field, std::string_view encoded_value) {
+    const std::string needle = "\"" + std::string{field} + "\"";
+    const auto key = body.find(needle);
+    if (key == std::string::npos) {
+        return AddJsonFieldIfMissing(std::move(body), field, encoded_value);
+    }
+
+    const auto colon = body.find(':', key + needle.size());
+    if (colon == std::string::npos) {
+        return body;
+    }
+
+    const auto value_start = body.find_first_not_of(" \t\r\n", colon + 1);
+    const auto value_end = JsonValueEnd(body, value_start);
+    if (value_start == std::string::npos || value_end == std::string::npos) {
+        return body;
+    }
+
+    body.replace(value_start, value_end - value_start, encoded_value);
     return body;
 }
 
@@ -114,7 +193,7 @@ std::string MinimalOperationPayload(const Config& config, std::string_view kind,
 }
 
 std::string NormalizeOperationPayload(std::string body, const Config& config, std::string_view kind) {
-    body = AddJsonFieldIfMissing(std::move(body), "server_key", JsonString(config.server_key));
+    body = SetJsonField(std::move(body), "server_key", JsonString(config.server_key));
     body = AddJsonFieldIfMissing(std::move(body), "request_id", JsonString(MakeRequestId(config.server_key, kind)));
     body = AddJsonFieldIfMissing(std::move(body), "payload_version", "1");
     return body;
@@ -133,6 +212,7 @@ struct QueueRecord {
 struct QueueFlushResult {
     int attempted{0};
     int sent{0};
+    int terminal_failed{0};
     int remaining{0};
     HttpResponse current_response;
     bool has_current_response{false};
@@ -249,6 +329,21 @@ QueueRecord MakeQueueRecord(std::string_view command, std::string path, std::str
     };
 }
 
+std::string HttpErrorCode(const HttpResponse& response) {
+    auto code = ExtractJsonStringField(response.body, "code");
+    if (!code.empty()) {
+        return code;
+    }
+    return ExtractJsonStringField(response.body, "error");
+}
+
+bool IsTerminalHttpFailure(const HttpResponse& response) {
+    if (response.ok || response.status == 0) {
+        return false;
+    }
+    return response.status >= 400 && response.status < 500 && response.status != 408 && response.status != 429;
+}
+
 std::vector<QueueRecord> LoadQueueRecords(const std::filesystem::path& path) {
     std::vector<QueueRecord> records;
     std::ifstream input{path};
@@ -310,6 +405,10 @@ QueueFlushResult FlushQueueInternal(const Config& config, std::string_view curre
         if (response.ok) {
             ++result.sent;
             AppendQueueRecord(config.queue_sent_file, record);
+        } else if (IsTerminalHttpFailure(response)) {
+            ++result.terminal_failed;
+            const auto code = HttpErrorCode(response);
+            result.last_error = code.empty() ? "HTTP " + std::to_string(response.status) : code;
         } else {
             if (!response.error.empty()) {
                 result.last_error = response.error;
@@ -356,6 +455,7 @@ std::string QueueFlushJson(std::string_view command, const QueueFlushResult& res
            << ",\"command\":" << JsonString(command)
            << ",\"attempted\":" << result.attempted
            << ",\"sent\":" << result.sent
+           << ",\"terminal_failed\":" << result.terminal_failed
            << ",\"remaining\":" << result.remaining;
     if (!result.last_error.empty()) {
         output << ",\"last_error\":" << JsonString(result.last_error);
@@ -377,12 +477,22 @@ std::string SendOperationWithQueue(std::string_view command, std::string path, s
         return HttpJson(command, flush.current_response);
     }
 
+    if (flush.has_current_response && IsTerminalHttpFailure(flush.current_response)) {
+        auto response = HttpJson(command, flush.current_response);
+        const auto insert_at = response.find_last_of('}');
+        if (insert_at != std::string::npos) {
+            response.insert(insert_at, ",\"queued\":false,\"terminal\":true");
+        }
+        return response;
+    }
+
     std::ostringstream output;
     output << "{\"ok\":false,\"command\":" << JsonString(command)
            << ",\"queued\":true"
            << ",\"queue_id\":" << JsonString(queue_id)
            << ",\"attempted\":" << flush.attempted
            << ",\"sent\":" << flush.sent
+           << ",\"terminal_failed\":" << flush.terminal_failed
            << ",\"remaining\":" << flush.remaining;
     if (flush.has_current_response) {
         output << ",\"http_status\":" << flush.current_response.status;
@@ -551,6 +661,21 @@ std::string ExecuteCommand(std::string_view command, std::span<const std::string
                 return MissingArg(command, "operation_id");
             }
             return HttpJson(command, HttpGetAuth("/v1/operations/" + UrlEncode(args.front()) + "/attendance", config));
+        }
+
+        if (command == "operation_payloads_get") {
+            if (args.empty() || args.front().empty()) {
+                return MissingArg(command, "operation_id");
+            }
+            return HttpJson(command, HttpGetAuth("/v1/operations/" + UrlEncode(args.front()) + "/payloads", config));
+        }
+
+        if (command == "operation_list") {
+            std::string path = "/v1/operations?server_key=" + UrlEncode(config.server_key);
+            if (!args.empty() && !args.front().empty()) {
+                path += "&limit=" + UrlEncode(args.front());
+            }
+            return HttpJson(command, HttpGetAuth(path, config));
         }
 
         return JsonError(command, "unknown_command", "Unknown command.");

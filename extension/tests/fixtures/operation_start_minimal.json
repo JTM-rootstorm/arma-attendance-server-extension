@@ -7,5 +7,10 @@
     "mission_name": "CI Mission",
     "world_name": "VR"
   },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
+  },
   "players": []
 }

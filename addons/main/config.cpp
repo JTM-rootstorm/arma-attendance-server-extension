@@ -71,6 +71,9 @@ class CfgFunctions {
             class markPlayerAbsent {
                 file = "\x\aase\addons\main\functions\fnc_markPlayerAbsent.sqf";
             };
+            class incrementPresenceStat {
+                file = "\x\aase\addons\main\functions\fnc_incrementPresenceStat.sqf";
+            };
             class presenceFinalizeForEnd {
                 file = "\x\aase\addons\main\functions\fnc_presenceFinalizeForEnd.sqf";
             };

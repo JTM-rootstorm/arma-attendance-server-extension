@@ -71,6 +71,8 @@ int main(int argc, char** argv) {
     bool ok = true;
     const char* original_base_url = std::getenv("AASE_BASE_URL");
     const std::string base_url = original_base_url == nullptr ? "http://127.0.0.1:3000" : original_base_url;
+    const char* original_server_key = std::getenv("AASE_SERVER_KEY");
+    const std::string configured_server_key = original_server_key == nullptr ? "smoke-file-server" : original_server_key;
     std::filesystem::path queue_path;
     std::filesystem::path sent_path;
 
@@ -126,6 +128,35 @@ int main(int argc, char** argv) {
     ok = ExpectOk("operation_start replay", operation_start_replay) && ok;
     ok = Contains(operation_start_replay, "\"idempotent\":true") && ok;
 
+    const std::vector<std::string> override_start_args{
+        "{\"request_id\":\"ci:start:override\",\"server_key\":\"wrong-server\",\"payload_version\":1,\"players\":[]}"};
+    const auto override_start = arma_attendance::ExecuteCommand("operation_start", override_start_args);
+    ok = ExpectOk("operation_start server-key override", override_start) && ok;
+    const std::vector<std::string> override_ingest_args{"ci:start:override"};
+    const auto override_ingest = arma_attendance::ExecuteCommand("ingest_request_get", override_ingest_args);
+    ok = ExpectOk("ingest_request_get server-key override", override_ingest) && ok;
+    if (!Contains(override_ingest, "\"server_key\":\"" + configured_server_key + "\"") ||
+        Contains(override_ingest, "\"server_key\":\"wrong-server\"")) {
+        std::cerr << "operation_start did not force configured server_key: " << override_ingest << '\n';
+        ok = false;
+    }
+
+    SetEnv("AASE_SERVER_KEY", "mismatch-server");
+    arma_attendance::ExecuteCommand("reload_config");
+    const std::vector<std::string> mismatch_finish_args{
+        operation_id,
+        "{\"request_id\":\"ci:finish:mismatch\",\"payload_version\":1,\"players\":[]}"};
+    const auto mismatch_finish = arma_attendance::ExecuteCommand("operation_finish", mismatch_finish_args);
+    if (!Contains(mismatch_finish, "\"terminal\":true") || !Contains(mismatch_finish, "server_key_mismatch")) {
+        std::cerr << "operation_finish server-key mismatch check failed: " << mismatch_finish << '\n';
+        ok = false;
+    }
+    const auto mismatch_queue_status = arma_attendance::ExecuteCommand("queue_status");
+    ok = ExpectOk("queue_status after terminal mismatch", mismatch_queue_status) && ok;
+    ok = Contains(mismatch_queue_status, "\"queued_count\":0") && ok;
+    SetEnv("AASE_SERVER_KEY", configured_server_key.c_str());
+    arma_attendance::ExecuteCommand("reload_config");
+
     const std::vector<std::string> finish_args{
         operation_id,
         R"json({"request_id":"ci:finish:001","payload_version":1,"players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json"};
@@ -144,6 +175,13 @@ int main(int argc, char** argv) {
 
     const auto attendance_get = arma_attendance::ExecuteCommand("operation_attendance_get", operation_args);
     ok = ExpectOk("operation_attendance_get", attendance_get) && ok;
+
+    const auto payloads_get = arma_attendance::ExecuteCommand("operation_payloads_get", operation_args);
+    ok = ExpectOk("operation_payloads_get", payloads_get) && ok;
+
+    const std::vector<std::string> list_args{"10"};
+    const auto operation_list = arma_attendance::ExecuteCommand("operation_list", list_args);
+    ok = ExpectOk("operation_list", operation_list) && ok;
 
     const auto finish_missing_arg = arma_attendance::ExecuteCommand("operation_finish");
     if (!Contains(finish_missing_arg, "\"ok\":false") || !Contains(finish_missing_arg, "missing_argument")) {

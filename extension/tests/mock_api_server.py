@@ -48,12 +48,34 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._json(200, {"ok": True, "ingest_request": saved})
             return
+        if path == "/v1/operations":
+            self._json(200, {"ok": True, "operations": list(operations.values())})
+            return
         if path.startswith("/v1/operations/") and path.endswith("/attendance"):
             operation_id = remove_suffix(remove_prefix(path, "/v1/operations/"), "/attendance").strip("/")
             if operation_id not in operations:
                 self._json(404, {"ok": False, "error": {"code": "operation_not_found"}})
                 return
-            self._json(200, {"ok": True, "operation_id": operation_id, "attendance": []})
+            operation = operations[operation_id]
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "operation_id": operation_id,
+                    "attendance": operation.get("raw_end_payload", {}).get("attendance_records", []),
+                },
+            )
+            return
+        if path.startswith("/v1/operations/") and path.endswith("/payloads"):
+            operation_id = remove_suffix(remove_prefix(path, "/v1/operations/"), "/payloads").strip("/")
+            operation = operations.get(operation_id)
+            if operation is None:
+                self._json(404, {"ok": False, "error": {"code": "operation_not_found"}})
+                return
+            payloads = [{"kind": "start", "payload": operation["raw_start_payload"]}]
+            if "raw_end_payload" in operation:
+                payloads.append({"kind": "finish", "payload": operation["raw_end_payload"]})
+            self._json(200, {"ok": True, "operation_id": operation_id, "payloads": payloads})
             return
         if path.startswith("/v1/operations/"):
             operation_id = remove_prefix(path, "/v1/operations/").strip("/")
@@ -131,6 +153,9 @@ class Handler(BaseHTTPRequestHandler):
             request_id = payload.get("request_id")
             if not request_id or not payload.get("server_key"):
                 self._json(400, {"ok": False, "error": {"code": "validation_failed"}})
+                return
+            if payload.get("server_key") != operations[operation_id].get("server_key"):
+                self._json(409, {"ok": False, "error": {"code": "server_key_mismatch"}})
                 return
             if request_id in requests_by_id:
                 response = dict(requests_by_id[request_id]["response"])

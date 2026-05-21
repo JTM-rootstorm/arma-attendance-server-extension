@@ -1,0 +1,26 @@
+{
+  "request_id": "main-arma-linux-01:start:altis-co40-operation-example:12345",
+  "server_key": "main-arma-linux-01",
+  "payload_version": 1,
+  "mission": {
+    "mission_uid": "altis:co40-operation-example",
+    "mission_name": "CO40 Operation Example",
+    "world_name": "Altis"
+  },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
+  },
+  "players": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Example Player",
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": ""
+    }
+  ]
+}

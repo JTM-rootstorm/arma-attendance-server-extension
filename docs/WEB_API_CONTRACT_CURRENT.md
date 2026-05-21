@@ -1,6 +1,6 @@
 # Current Web API Contract For Extension Alignment
 
-Verified against local `arma-attendance-web` commit `d9523d2`.
+Aligned with the `arma-attendance-web` `web-frontend` branch contract.
 
 This document captures only the API contract relevant to the Arma extension repo.
 
@@ -14,6 +14,21 @@ Content-Type: application/json
 ```
 
 Do not log this header or token.
+
+The dedicated-server TOML stores the raw token only:
+
+```toml
+[http]
+api_token = "aat_arma_server_REPLACE_WITH_REAL_TOKEN"
+```
+
+The native extension adds the `Bearer` scheme when building the HTTP header. Do
+not put `Bearer ` in the config file.
+
+The TOML `[server].server_key` is the stable server identity. The native
+extension injects that configured value into operation start/finish payloads so
+SQF cannot accidentally finish with a different server key than the one used to
+start the operation.
 
 ## Health
 
@@ -70,9 +85,9 @@ Recommended extension payload:
     "world_name": "Altis"
   },
   "source": {
-    "kind": "arma3-extension",
-    "extension_version": "0.1.0",
-    "addon_version": "0.1.0"
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
   },
   "players": []
 }
@@ -124,6 +139,11 @@ Recommended extension payload:
     "mission_name": "Coop Night 12",
     "world_name": "Altis"
   },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
+  },
   "players": [
     {
       "player_uid": "76561198000000000",
@@ -155,6 +175,7 @@ Recommended extension payload:
       "missed_seconds": 0,
       "attendance_ratio": 1,
       "attendance_percent": 100,
+      "attendance_threshold": 0.5,
       "attendance_status": "full",
       "attendance_credit": true,
       "disconnect_count": 0,
@@ -172,6 +193,11 @@ Recommended extension payload:
 Expected success shape is similar to start, with `status: "finished"` and `normalized.stats_seen` reflecting players with stats.
 
 `players` remains the compatibility snapshot for players physically present at finish. `attendance_records` is the full operation ledger and should include every UID known to the server during the operation, including players who disconnected before finish.
+
+Current web behavior treats every top-level finish `players[]` entry as present
+at end. Players who disconnected before finish must be omitted from top-level
+`players[]` and represented in `attendance_records[]` with
+`present_at_end=false`.
 
 ## Normalized Player Fields
 
@@ -219,3 +245,18 @@ GET /v1/operations?server_key=<server_key>&limit=10
 ```
 
 These require bearer auth.
+
+Native command mapping:
+
+```text
+ingest_request_get <request_id>       -> GET /v1/ingest-requests/:request_id
+operation_get <operation_id>          -> GET /v1/operations/:operation_id
+operation_attendance_get <operation_id> -> GET /v1/operations/:operation_id/attendance
+operation_payloads_get <operation_id> -> GET /v1/operations/:operation_id/payloads
+operation_list [limit]                -> GET /v1/operations?server_key=<configured-server-key>&limit=<limit>
+```
+
+Operation start and finish are queued before HTTP when the queue is enabled.
+Network failures and 5xx responses remain retryable. Terminal 4xx validation
+errors, including `server_key_mismatch`, are surfaced to SQF and removed from
+the retry queue so they do not loop forever.

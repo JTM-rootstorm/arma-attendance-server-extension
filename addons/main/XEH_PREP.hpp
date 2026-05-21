@@ -14,6 +14,7 @@
 [QFUNC(markPlayerPresentFromUnit), compileScript ["\x\aase\addons\main\functions\fnc_markPlayerPresentFromUnit.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(markUidPresentPending), compileScript ["\x\aase\addons\main\functions\fnc_markUidPresentPending.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(markPlayerAbsent), compileScript ["\x\aase\addons\main\functions\fnc_markPlayerAbsent.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(incrementPresenceStat), compileScript ["\x\aase\addons\main\functions\fnc_incrementPresenceStat.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(presenceFinalizeForEnd), compileScript ["\x\aase\addons\main\functions\fnc_presenceFinalizeForEnd.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildAttendanceRecords), compileScript ["\x\aase\addons\main\functions\fnc_buildAttendanceRecords.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(extractJsonStringField), compileScript ["\x\aase\addons\main\functions\fnc_extractJsonStringField.sqf"]] call CBA_fnc_compileFunction;

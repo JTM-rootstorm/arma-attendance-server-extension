@@ -7,6 +7,11 @@ createHashMapFromArray [
     ["request_id", _requestId],
     ["payload_version", 1],
     ["mission", _mission],
+    ["source", createHashMapFromArray [
+        ["kind", "arma3-addon"],
+        ["addon", "aase_main"],
+        ["extension", "arma_attendance"]
+    ]],
     ["operation_id", _operationId],
     ["players", [true] call AASE_fnc_buildPlayersSnapshot],
     ["attendance_records", [] call AASE_fnc_buildAttendanceRecords]

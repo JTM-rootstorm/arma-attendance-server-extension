@@ -96,4 +96,25 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/validate_attendance_records.py
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation-with-attendance-records.example.json
     )
+
+    add_test(
+        NAME payload_contract_examples
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/validate_payloads.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/operation_start_minimal.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/operation_finish_minimal.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/operation_finish_with_stats.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/start-operation.web-frontend.example.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation.web-frontend.example.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation-with-attendance-records.example.json
+    )
+
+    add_test(
+        NAME sqf_module_cleanup_static
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/validate_sqf_modules.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+    )
 endif()

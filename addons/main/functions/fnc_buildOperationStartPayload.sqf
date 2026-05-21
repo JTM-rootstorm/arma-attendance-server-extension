@@ -8,7 +8,8 @@ createHashMapFromArray [
     ["mission", _mission],
     ["source", createHashMapFromArray [
         ["kind", "arma3-addon"],
-        ["addon", "aase_main"]
+        ["addon", "aase_main"],
+        ["extension", "arma_attendance"]
     ]],
     ["players", [false] call AASE_fnc_buildPlayersSnapshot]
 ]
