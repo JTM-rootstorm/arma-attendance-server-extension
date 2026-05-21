@@ -1,0 +1,86 @@
+{
+  "request_id": "main-arma-linux-01:finish:00000000-0000-0000-0000-000000000000:22345",
+  "server_key": "main-arma-linux-01",
+  "payload_version": 1,
+  "mission": {
+    "mission_uid": "altis:co40-operation-example",
+    "mission_name": "CO40 Operation Example",
+    "world_name": "Altis"
+  },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
+  },
+  "players": [
+    {
+      "player_uid": "76561198000000001",
+      "name": "End Present Player",
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Medic",
+      "unit_class": "B_medic_F",
+      "vehicle_class": "",
+      "stats": {
+        "infantry_kills": 2,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 2,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
+    }
+  ],
+  "attendance_records": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Disconnected Before End",
+      "present_at_start": true,
+      "present_at_end": false,
+      "joined_after_start": false,
+      "operation_seconds": 7200,
+      "attended_seconds": 6800,
+      "missed_seconds": 400,
+      "attendance_ratio": 0.9444,
+      "attendance_percent": 94.44,
+      "attendance_threshold": 0.5,
+      "attendance_credit": true,
+      "attendance_status": "credited",
+      "disconnect_count": 1,
+      "reconnect_count": 0,
+      "stats": {
+        "infantry_kills": 0,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 0,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
+    },
+    {
+      "player_uid": "76561198000000001",
+      "name": "End Present Player",
+      "present_at_start": true,
+      "present_at_end": true,
+      "joined_after_start": false,
+      "operation_seconds": 7200,
+      "attended_seconds": 7200,
+      "missed_seconds": 0,
+      "attendance_ratio": 1.0,
+      "attendance_percent": 100.0,
+      "attendance_threshold": 0.5,
+      "attendance_credit": true,
+      "attendance_status": "full",
+      "disconnect_count": 0,
+      "reconnect_count": 0,
+      "stats": {
+        "infantry_kills": 2,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 2,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
+    }
+  ]
+}

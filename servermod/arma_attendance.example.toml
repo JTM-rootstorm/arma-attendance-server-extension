@@ -3,12 +3,12 @@
 # Never commit the real arma_attendance.toml.
 
 [server]
-server_key = "main-unit-server"
+server_key = "main-arma-linux-01"
 
 [http]
 base_url = "https://stats.example.com"
-api_token = "replace-me"
-timeout_ms = 3000
+api_token = "aat_arma_server_REPLACE_WITH_REAL_TOKEN"
+timeout_ms = 5000
 verify_tls = true
 
 [logging]
@@ -17,5 +17,5 @@ level = "info"
 [queue]
 enabled = true
 queue_file = "arma_attendance_queue.ndjson"
-sent_file = "arma_attendance_queue.sent.ndjson"
+queue_sent_file = "arma_attendance_queue.sent.ndjson"
 max_attempts = 25
