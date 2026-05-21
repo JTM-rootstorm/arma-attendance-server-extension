@@ -20,6 +20,52 @@ private _disconnectedId = addMissionEventHandler ["PlayerDisconnected", {
     [_uid, _name, "disconnect"] call AASE_fnc_markPlayerAbsent;
 }];
 
+private _entityKilledId = addMissionEventHandler ["EntityKilled", {
+    params ["_killed", "_killer", "_instigator"];
+
+    if (!isServer) exitWith {};
+    if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false])) exitWith {};
+    if (isNull _killed) exitWith {};
+
+    if (isPlayer _killed) then {
+        private _killedUid = getPlayerUID _killed;
+        if (_killedUid isNotEqualTo "") then {
+            [_killedUid, name _killed, "deaths"] call AASE_fnc_incrementPresenceStat;
+        };
+    };
+
+    private _killerUnit = _instigator;
+    if (isNull _killerUnit) then {
+        _killerUnit = _killer;
+    };
+    if (isNull _killerUnit) exitWith {};
+    if (!isPlayer _killerUnit) exitWith {};
+    if (_killerUnit isEqualTo _killed) exitWith {};
+
+    private _killerUid = getPlayerUID _killerUnit;
+    if (_killerUid isEqualTo "") exitWith {};
+
+    [_killerUnit, false] call AASE_fnc_markPlayerPresentFromUnit;
+
+    if (isPlayer _killed) then {
+        [_killerUid, name _killerUnit, "player_kills"] call AASE_fnc_incrementPresenceStat;
+    } else {
+        if (_killed isKindOf "Man") then {
+            [_killerUid, name _killerUnit, "infantry_kills"] call AASE_fnc_incrementPresenceStat;
+            [_killerUid, name _killerUnit, "ai_kills"] call AASE_fnc_incrementPresenceStat;
+        } else {
+            if ((_killed isKindOf "LandVehicle") || {_killed isKindOf "Air"} || {_killed isKindOf "Ship"}) then {
+                [_killerUid, name _killerUnit, "vehicle_kills"] call AASE_fnc_incrementPresenceStat;
+            };
+        };
+    };
+
+    if ((side (group _killerUnit)) isEqualTo (side (group _killed))) then {
+        [_killerUid, name _killerUnit, "friendly_kills"] call AASE_fnc_incrementPresenceStat;
+    };
+}];
+
 missionNamespace setVariable ["AASE_presenceHandlersRegistered", true, false];
 missionNamespace setVariable ["AASE_presenceConnectedHandler", _connectedId, false];
 missionNamespace setVariable ["AASE_presenceDisconnectedHandler", _disconnectedId, false];
+missionNamespace setVariable ["AASE_presenceEntityKilledHandler", _entityKilledId, false];

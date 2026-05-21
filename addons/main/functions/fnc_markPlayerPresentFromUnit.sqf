@@ -38,7 +38,15 @@ if (!_wasKnown) then {
         ["group", ""],
         ["role", ""],
         ["unit_class", ""],
-        ["vehicle_class", ""]
+        ["vehicle_class", ""],
+        ["stats", createHashMapFromArray [
+            ["infantry_kills", 0],
+            ["vehicle_kills", 0],
+            ["player_kills", 0],
+            ["ai_kills", 0],
+            ["friendly_kills", 0],
+            ["deaths", 0]
+        ]]
     ];
 } else {
     if ((_record getOrDefault ["state", "unknown"]) isNotEqualTo "present") then {
@@ -72,6 +80,16 @@ _record set ["group", groupId (group _unit)];
 _record set ["role", _role];
 _record set ["unit_class", typeOf _unit];
 _record set ["vehicle_class", _vehicleClass];
+if !("stats" in _record) then {
+    _record set ["stats", createHashMapFromArray [
+        ["infantry_kills", 0],
+        ["vehicle_kills", 0],
+        ["player_kills", 0],
+        ["ai_kills", 0],
+        ["friendly_kills", 0],
+        ["deaths", 0]
+    ]];
+};
 
 _ledger set [_uid, _record];
 missionNamespace setVariable ["AASE_presenceByUid", _ledger, false];

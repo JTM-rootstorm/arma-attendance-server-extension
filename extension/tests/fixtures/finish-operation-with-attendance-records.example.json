@@ -39,6 +39,7 @@
       "missed_seconds": 0,
       "attendance_ratio": 1,
       "attendance_percent": 100,
+      "attendance_threshold": 0.5,
       "attendance_status": "full",
       "attendance_credit": true,
       "disconnect_count": 0,
@@ -51,7 +52,15 @@
       "group": "Alpha 1-1",
       "role": "Rifleman",
       "unit_class": "B_Soldier_F",
-      "vehicle_class": ""
+      "vehicle_class": "",
+      "stats": {
+        "infantry_kills": 0,
+        "vehicle_kills": 0,
+        "player_kills": 0,
+        "ai_kills": 0,
+        "friendly_kills": 0,
+        "deaths": 0
+      }
     }
   ]
 }

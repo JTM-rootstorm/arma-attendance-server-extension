@@ -66,6 +66,7 @@ private _records = [];
         ["missed_seconds", _operationSeconds - _attendedSeconds],
         ["attendance_ratio", _attendanceRatio],
         ["attendance_percent", _attendanceRatio * 100],
+        ["attendance_threshold", _threshold],
         ["attendance_status", _attendanceStatus],
         ["attendance_credit", _attendanceRatio >= _threshold],
         ["disconnect_count", _record getOrDefault ["disconnect_count", 0]],
@@ -78,7 +79,15 @@ private _records = [];
         ["group", _record getOrDefault ["group", ""]],
         ["role", _record getOrDefault ["role", ""]],
         ["unit_class", _record getOrDefault ["unit_class", ""]],
-        ["vehicle_class", _record getOrDefault ["vehicle_class", ""]]
+        ["vehicle_class", _record getOrDefault ["vehicle_class", ""]],
+        ["stats", _record getOrDefault ["stats", createHashMapFromArray [
+            ["infantry_kills", 0],
+            ["vehicle_kills", 0],
+            ["player_kills", 0],
+            ["ai_kills", 0],
+            ["friendly_kills", 0],
+            ["deaths", 0]
+        ]]]
     ];
 } forEach _ledger;
 
