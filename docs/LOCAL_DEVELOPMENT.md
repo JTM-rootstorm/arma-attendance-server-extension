@@ -32,6 +32,13 @@ The tests use a local mock API and the `AASE_*` environment variables. Keep real
 
 `ctest` also validates the presence-ledger math with `extension/tests/presence_ledger_cases.py` and checks the finish payload fixture with top-level `attendance_records`.
 
+Payload examples and one-shot Zeus module cleanup can also be checked directly:
+
+```bash
+python3 extension/tests/validate_payloads.py extension/tests/fixtures/*.json
+python3 extension/tests/validate_sqf_modules.py .
+```
+
 ## Adjacent Web Contract Checks
 
 The current contract doc was verified against the sibling checkout:

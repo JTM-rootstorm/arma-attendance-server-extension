@@ -5,6 +5,7 @@ Phase 0 CI proves three things without private key material:
 - HEMTT can check and build the addon skeleton.
 - Linux produces `arma_attendance.so` and `arma_attendance_x64.so`.
 - Windows produces `arma_attendance_x64.dll`.
+- Payload examples and static one-shot Zeus module cleanup checks pass.
 - Linux artifacts do not depend on server-provided `libcurl`, `libstdc++`, or `libgcc_s`.
 - Linux artifacts are built in an Ubuntu 20.04 container and audited to avoid requiring GLIBC newer than 2.31.
 

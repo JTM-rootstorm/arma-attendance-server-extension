@@ -12,6 +12,26 @@ permissions:
   contents: read
 
 jobs:
+  payload-contract:
+    name: Payload contract and SQF static checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate payload examples
+        run: |
+          python3 extension/tests/validate_payloads.py \
+            extension/tests/fixtures/operation_start_minimal.json \
+            extension/tests/fixtures/operation_finish_minimal.json \
+            extension/tests/fixtures/operation_finish_with_stats.json \
+            extension/tests/fixtures/start-operation.web-frontend.example.json \
+            extension/tests/fixtures/finish-operation.web-frontend.example.json \
+            extension/tests/fixtures/finish-operation-with-attendance-records.example.json
+
+      - name: Validate SQF module cleanup
+        run: python3 extension/tests/validate_sqf_modules.py "$PWD"
+
   addon-hemtt:
     name: HEMTT addon check/build
     runs-on: ubuntu-latest

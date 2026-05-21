@@ -2,5 +2,15 @@
   "request_id": "ci:finish:001",
   "server_key": "ci-contract",
   "payload_version": 1,
+  "mission": {
+    "mission_uid": "ci-world:ci-mission:001",
+    "mission_name": "CI Mission",
+    "world_name": "VR"
+  },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "aase_main",
+    "extension": "arma_attendance"
+  },
   "players": []
 }
