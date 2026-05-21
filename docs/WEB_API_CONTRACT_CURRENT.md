@@ -245,3 +245,18 @@ GET /v1/operations?server_key=<server_key>&limit=10
 ```
 
 These require bearer auth.
+
+Native command mapping:
+
+```text
+ingest_request_get <request_id>       -> GET /v1/ingest-requests/:request_id
+operation_get <operation_id>          -> GET /v1/operations/:operation_id
+operation_attendance_get <operation_id> -> GET /v1/operations/:operation_id/attendance
+operation_payloads_get <operation_id> -> GET /v1/operations/:operation_id/payloads
+operation_list [limit]                -> GET /v1/operations?server_key=<configured-server-key>&limit=<limit>
+```
+
+Operation start and finish are queued before HTTP when the queue is enabled.
+Network failures and 5xx responses remain retryable. Terminal 4xx validation
+errors, including `server_key_mismatch`, are surfaced to SQF and removed from
+the retry queue so they do not loop forever.
