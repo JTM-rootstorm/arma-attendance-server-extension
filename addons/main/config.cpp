@@ -26,6 +26,9 @@ class CfgFunctions {
             class log {
                 file = "\x\aase\addons\main\functions\fnc_log.sqf";
             };
+            class encodeJson {
+                file = "\x\aase\addons\main\functions\fnc_encodeJson.sqf";
+            };
             class callExtension {
                 file = "\x\aase\addons\main\functions\fnc_callExtension.sqf";
             };

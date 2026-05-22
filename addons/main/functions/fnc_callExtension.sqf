@@ -31,4 +31,8 @@ if ([_result] call _isExtensionFailure) then {
     ] call AASE_fnc_log;
 };
 
+if (_result isEqualType [] && {count _result > 0}) exitWith {
+    _result select 0
+};
+
 _result
