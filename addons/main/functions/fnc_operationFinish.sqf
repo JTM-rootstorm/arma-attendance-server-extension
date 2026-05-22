@@ -9,7 +9,7 @@ if (_operationId isEqualTo "") exitWith {
 [] call AASE_fnc_presenceFinalizeForEnd;
 
 private _payload = [_operationId] call AASE_fnc_buildOperationFinishPayload;
-private _payloadJson = [_payload] call CBA_fnc_encodeJSON;
+private _payloadJson = [_payload] call AASE_fnc_encodeJson;
 private _result = ["operation_finish", [_operationId, _payloadJson]] call AASE_fnc_callExtension;
 private _accepted = (_result find '"ok":true') >= 0 && {(_result find '"accepted":true') >= 0};
 

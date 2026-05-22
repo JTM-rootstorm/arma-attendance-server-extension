@@ -6,7 +6,7 @@ if (missionNamespace getVariable ["AASE_operationActive", false]) exitWith {
 };
 
 private _payload = [] call AASE_fnc_buildOperationStartPayload;
-private _payloadJson = [_payload] call CBA_fnc_encodeJSON;
+private _payloadJson = [_payload] call AASE_fnc_encodeJson;
 private _result = ["operation_start", [_payloadJson]] call AASE_fnc_callExtension;
 private _operationId = [_result, "operation_id"] call AASE_fnc_extractJsonStringField;
 
