@@ -12,6 +12,19 @@ CANONICAL_STATS = {
     "friendly_kills",
     "deaths",
 }
+SCOREBOARD_FIELDS = {
+    "stats_source",
+    "infantry_kills",
+    "soft_vehicle_kills",
+    "armor_kills",
+    "ground_vehicle_kills",
+    "air_kills",
+    "all_vehicle_kills",
+    "deaths",
+    "score",
+    "baseline",
+    "latest",
+}
 
 
 def bad(path, msg):
@@ -31,6 +44,26 @@ def validate_stats(path, owner, stats):
             ok = bad(path, f"{owner}.stats has non-canonical field {field}")
         if not isinstance(value, int) or value < 0:
             ok = bad(path, f"{owner}.stats.{field} must be a non-negative integer")
+    return ok
+
+
+def validate_scoreboard_stats(path, owner, scoreboard_stats):
+    ok = True
+    if not isinstance(scoreboard_stats, dict):
+        return bad(path, f"{owner}.scoreboard_stats must be an object")
+    missing = sorted(SCOREBOARD_FIELDS - set(scoreboard_stats))
+    if missing:
+        ok = bad(path, f"{owner}.scoreboard_stats missing {', '.join(missing)}")
+    if scoreboard_stats.get("stats_source") != "arma_getPlayerScores_delta":
+        ok = bad(path, f"{owner}.scoreboard_stats.stats_source must be arma_getPlayerScores_delta")
+    for field in SCOREBOARD_FIELDS - {"stats_source", "baseline", "latest"}:
+        value = scoreboard_stats.get(field)
+        if not isinstance(value, int) or value < 0:
+            ok = bad(path, f"{owner}.scoreboard_stats.{field} must be a non-negative integer")
+    for field in ("baseline", "latest"):
+        value = scoreboard_stats.get(field)
+        if not isinstance(value, list) or len(value) != 6:
+            ok = bad(path, f"{owner}.scoreboard_stats.{field} must be a six-value array")
     return ok
 
 
@@ -60,6 +93,8 @@ def validate(path):
             ok = bad(path, f"{owner} has present_at_end=false; use attendance_records")
         if "stats" in player:
             ok = validate_stats(path, owner, player["stats"]) and ok
+        if "scoreboard_stats" in player:
+            ok = validate_scoreboard_stats(path, owner, player["scoreboard_stats"]) and ok
 
     for index, record in enumerate(data.get("attendance_records", [])):
         owner = f"attendance_records[{index}]"
@@ -77,6 +112,8 @@ def validate(path):
             ok = bad(path, f"{owner} missing attendance_threshold")
         if "stats" in record:
             ok = validate_stats(path, owner, record["stats"]) and ok
+        if "scoreboard_stats" in record:
+            ok = validate_scoreboard_stats(path, owner, record["scoreboard_stats"]) and ok
 
     if ok:
         print(f"[OK] {path}")

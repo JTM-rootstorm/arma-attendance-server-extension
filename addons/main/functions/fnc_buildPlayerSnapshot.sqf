@@ -25,14 +25,13 @@ private _snapshot = createHashMapFromArray [
 ];
 
 if (_includeStats) then {
-    _snapshot set ["stats", createHashMapFromArray [
-        ["infantry_kills", 0],
-        ["vehicle_kills", 0],
-        ["player_kills", 0],
-        ["ai_kills", 0],
-        ["friendly_kills", 0],
-        ["deaths", 0]
-    ]];
+    [_snapshot, _uid] call AASE_fnc_scoreAttachStats;
+} else {
+    private _baselineByUid = missionNamespace getVariable ["AASE_scoreBaselineByUid", createHashMap];
+    private _baseline = _baselineByUid getOrDefault [_uid, createHashMap];
+    if (count _baseline > 0) then {
+        _snapshot set ["scoreboard_baseline", _baseline getOrDefault ["scores", []]];
+    };
 };
 
 _snapshot

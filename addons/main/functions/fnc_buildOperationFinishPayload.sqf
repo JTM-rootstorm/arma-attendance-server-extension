@@ -10,7 +10,8 @@ createHashMapFromArray [
     ["source", createHashMapFromArray [
         ["kind", "arma3-addon"],
         ["addon", "aase_main"],
-        ["extension", "arma_attendance"]
+        ["extension", "arma_attendance"],
+        ["stats_source", "arma_getPlayerScores_delta"]
     ]],
     ["operation_id", _operationId],
     ["players", [true] call AASE_fnc_buildPlayersSnapshot],

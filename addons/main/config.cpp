@@ -53,6 +53,27 @@ class CfgFunctions {
             class buildOperationFinishPayload {
                 file = "\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
             };
+            class scoreNormalizeArray {
+                file = "\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf";
+            };
+            class scoreInit {
+                file = "\x\aase\addons\main\functions\fnc_scoreInit.sqf";
+            };
+            class scoreCaptureUnit {
+                file = "\x\aase\addons\main\functions\fnc_scoreCaptureUnit.sqf";
+            };
+            class scoreCaptureCurrentPlayers {
+                file = "\x\aase\addons\main\functions\fnc_scoreCaptureCurrentPlayers.sqf";
+            };
+            class scoreDelta {
+                file = "\x\aase\addons\main\functions\fnc_scoreDelta.sqf";
+            };
+            class scoreStatsForUid {
+                file = "\x\aase\addons\main\functions\fnc_scoreStatsForUid.sqf";
+            };
+            class scoreAttachStats {
+                file = "\x\aase\addons\main\functions\fnc_scoreAttachStats.sqf";
+            };
             class presenceInit {
                 file = "\x\aase\addons\main\functions\fnc_presenceInit.sqf";
             };
