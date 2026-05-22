@@ -87,7 +87,8 @@ Recommended extension payload:
   "source": {
     "kind": "arma3-addon",
     "addon": "aase_main",
-    "extension": "arma_attendance"
+    "extension": "arma_attendance",
+    "stats_source": "arma_getPlayerScores_delta"
   },
   "players": []
 }
@@ -154,12 +155,25 @@ Recommended extension payload:
       "unit_class": "B_Soldier_F",
       "vehicle_class": "",
       "stats": {
-        "infantry_kills": 0,
-        "vehicle_kills": 0,
+        "infantry_kills": 12,
+        "vehicle_kills": 4,
         "player_kills": 0,
-        "ai_kills": 0,
+        "ai_kills": 12,
         "friendly_kills": 0,
-        "deaths": 0
+        "deaths": 2
+      },
+      "scoreboard_stats": {
+        "stats_source": "arma_getPlayerScores_delta",
+        "infantry_kills": 12,
+        "soft_vehicle_kills": 1,
+        "armor_kills": 2,
+        "ground_vehicle_kills": 3,
+        "air_kills": 1,
+        "all_vehicle_kills": 4,
+        "deaths": 2,
+        "score": 155,
+        "baseline": [0, 0, 0, 0, 0, 0],
+        "latest": [12, 1, 2, 1, 2, 155]
       }
     }
   ],
@@ -231,6 +245,13 @@ ai_kills
 friendly_kills
 deaths
 ```
+
+V1 addon stats are Arma scoreboard deltas from `getPlayerScores`. The addon
+maps infantry, soft vehicle, armor, air, deaths, and score counters into the
+six supported normalized fields and preserves the raw split under
+`scoreboard_stats`. `vehicle_kills` intentionally includes soft + armor + air
+scoreboard kills for current web compatibility. `player_kills` and
+`friendly_kills` remain zero until a later event-level attribution sprint.
 
 ## Readback Diagnostics
 

@@ -17,6 +17,16 @@ private _disconnectedId = addMissionEventHandler ["PlayerDisconnected", {
     if (!isServer) exitWith {};
     if (_uid isEqualTo "") exitWith {};
 
+    private _unit = objNull;
+    {
+        if ((getPlayerUID _x) isEqualTo _uid) exitWith {
+            _unit = _x;
+        };
+    } forEach allPlayers;
+    if (!isNull _unit) then {
+        [_unit] call AASE_fnc_scoreCaptureUnit;
+    };
+
     [_uid, _name, "disconnect"] call AASE_fnc_markPlayerAbsent;
 }];
 
@@ -25,6 +35,7 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
 
     if (!isServer) exitWith {};
     if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false])) exitWith {};
+    if (!(missionNamespace getVariable ["AASE_enableExperimentalKillLedger", false])) exitWith {};
     if (isNull _killed) exitWith {};
 
     if (isPlayer _killed) then {

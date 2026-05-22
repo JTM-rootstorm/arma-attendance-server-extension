@@ -80,12 +80,73 @@ def validate_operation_json(root):
     return ok
 
 
+def validate_scoreboard_stats(root):
+    required_functions = (
+        "scoreNormalizeArray",
+        "scoreInit",
+        "scoreCaptureUnit",
+        "scoreCaptureCurrentPlayers",
+        "scoreDelta",
+        "scoreStatsForUid",
+        "scoreAttachStats",
+    )
+    checks = {
+        "addons/main/XEH_PREP.hpp": [(f"{name} compile", f"fnc_{name}.sqf") for name in required_functions],
+        "addons/main/config.cpp": [(f"{name} CfgFunctions entry", f"class {name}") for name in required_functions],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("getPlayerScores capture", "getPlayerScores _unit"),
+            ("baseline preservation", "if !(_uid in _baselineByUid)"),
+            ("latest snapshot", "_latestByUid set [_uid, _snapshot]"),
+        ],
+        "addons/main/functions/fnc_scoreDelta.sqf": [
+            ("negative clamp", "if (_value < 0)"),
+            ("vehicle mapping includes air", "_groundVehicles + _air"),
+            ("stats source", "arma_getPlayerScores_delta"),
+        ],
+        "addons/main/functions/fnc_presenceInit.sqf": [
+            ("score init", "AASE_fnc_scoreInit"),
+            ("initial capture", "AASE_fnc_scoreCaptureCurrentPlayers"),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("late join capture", "AASE_fnc_scoreCaptureUnit"),
+        ],
+        "addons/main/functions/fnc_presenceStartLoop.sqf": [
+            ("loop capture", "AASE_fnc_scoreCaptureUnit"),
+        ],
+        "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
+            ("disconnect capture attempt", "AASE_fnc_scoreCaptureUnit"),
+            ("experimental kill ledger disabled by default", "AASE_enableExperimentalKillLedger"),
+        ],
+        "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
+            ("finish capture", "AASE_fnc_scoreCaptureCurrentPlayers"),
+        ],
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("finish-present stat attach", "AASE_fnc_scoreAttachStats"),
+        ],
+        "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
+            ("attendance stat attach", "AASE_fnc_scoreAttachStats"),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+    if ok:
+        print("[OK] SQF scoreboard stats wiring")
+    return ok
+
+
 def main(argv):
     root = Path(argv[1]) if len(argv) > 1 else Path.cwd()
     ok = True
     for module in MODULES:
         ok = validate_module_cleanup(root, module) and ok
     ok = validate_operation_json(root) and ok
+    ok = validate_scoreboard_stats(root) and ok
     return 0 if ok else 1
 
 

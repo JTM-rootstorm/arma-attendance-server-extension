@@ -37,6 +37,7 @@ Payload examples and one-shot Zeus module cleanup can also be checked directly:
 ```bash
 python3 extension/tests/validate_payloads.py extension/tests/fixtures/*.json
 python3 extension/tests/validate_sqf_modules.py .
+python3 extension/tests/validate_scoreboard_deltas.py extension/tests/fixtures/scoreboard-delta-cases.json
 ```
 
 ## Adjacent Web Contract Checks

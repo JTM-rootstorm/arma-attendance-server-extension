@@ -13,9 +13,11 @@ private _presentAtEnd = createHashMap;
     private _uid = getPlayerUID _x;
     if (_uid isNotEqualTo "") then {
         _presentAtEnd set [_uid, true];
+        [_x] call AASE_fnc_scoreCaptureUnit;
         [_x, false] call AASE_fnc_markPlayerPresentFromUnit;
     };
 } forEach allPlayers;
+[] call AASE_fnc_scoreCaptureCurrentPlayers;
 
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 {

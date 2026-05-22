@@ -90,6 +90,7 @@ if !("stats" in _record) then {
         ["deaths", 0]
     ]];
 };
+[_unit] call AASE_fnc_scoreCaptureUnit;
 
 _ledger set [_uid, _record];
 missionNamespace setVariable ["AASE_presenceByUid", _ledger, false];

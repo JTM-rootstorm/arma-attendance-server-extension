@@ -17,8 +17,36 @@ Tracked state is keyed by Arma UID and records:
 
 At finish, the addon finalizes every known UID into top-level `attendance_records` and keeps the existing top-level `players` array for the physically present-at-end snapshot with stats. The native extension does not calculate attendance; it forwards the JSON payload to the web API.
 
-Stats stay UID-keyed in the same ledger, so respawn and reconnect do not drop
-accumulated counters. Missing stats default to zero in both top-level finish
-`players[]` snapshots and `attendance_records[]`.
+## Scoreboard Stats
+
+V1 operation stats come from Arma's multiplayer scoreboard counters through
+`getPlayerScores`. The addon stores UID-keyed scoreboard baselines and latest
+snapshots while an operation is active:
+
+- start-operation initialization captures a baseline and latest snapshot for
+  players present at start
+- late joiners receive their baseline the first time the presence loop sees
+  their UID
+- reconnects preserve the original baseline and resume latest updates
+- disconnect handling attempts one last snapshot if the unit is still
+  resolvable, otherwise the last periodic snapshot remains authoritative
+- finish captures current players again before computing deltas
+
+The normalized web-compatible `stats` object is computed from clamped deltas:
+
+```text
+infantry_kills = delta infantry
+vehicle_kills = delta soft + delta armor + delta air
+player_kills = 0
+ai_kills = delta infantry
+friendly_kills = 0
+deaths = delta deaths
+```
+
+Detailed scoreboard split and the raw baseline/latest arrays are emitted under
+`scoreboard_stats`, not inside normalized `stats`. The previous event-level
+kill ledger remains disabled by default behind
+`AASE_enableExperimentalKillLedger`; exact victim, weapon, and friendly-fire
+attribution are future work.
 
 The attendance threshold defaults to `0.5`. Records at or above the threshold receive `attendance_credit: true`, full-operation records receive `attendance_status: "full"`, threshold-passing partial records receive `"partial"`, and below-threshold records receive `"absent"`.

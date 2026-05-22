@@ -55,7 +55,7 @@ private _records = [];
         _lastReconnectOffset = _lastReconnectAt - _startedAt;
     };
 
-    _records pushBack createHashMapFromArray [
+    private _attendanceRecord = createHashMapFromArray [
         ["player_uid", _record getOrDefault ["uid", _x]],
         ["name", _record getOrDefault ["name", ""]],
         ["present_at_start", _record getOrDefault ["present_at_start", false]],
@@ -89,6 +89,9 @@ private _records = [];
             ["deaths", 0]
         ]]]
     ];
+
+    [_attendanceRecord, _record getOrDefault ["uid", _x]] call AASE_fnc_scoreAttachStats;
+    _records pushBack _attendanceRecord;
 } forEach _ledger;
 
 _records

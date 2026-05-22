@@ -1,0 +1,119 @@
+{
+  "request_id": "main-arma-linux-01:finish:11111111-2222-3333-4444-555555555555:7200",
+  "server_key": "main-arma-linux-01",
+  "payload_version": 1,
+  "mission": {
+    "mission_uid": "altis:operation-night:example",
+    "mission_name": "Operation Night Example",
+    "world_name": "Altis"
+  },
+  "source": {
+    "kind": "arma3-addon",
+    "addon": "arma_attendance",
+    "stats_source": "arma_getPlayerScores_delta"
+  },
+  "players": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Example Present Player",
+      "side": "WEST",
+      "group": "Alpha 1-1",
+      "role": "Rifleman",
+      "unit_class": "B_Soldier_F",
+      "vehicle_class": "",
+      "stats": {
+        "infantry_kills": 12,
+        "vehicle_kills": 4,
+        "player_kills": 0,
+        "ai_kills": 12,
+        "friendly_kills": 0,
+        "deaths": 2
+      },
+      "scoreboard_stats": {
+        "stats_source": "arma_getPlayerScores_delta",
+        "infantry_kills": 12,
+        "soft_vehicle_kills": 1,
+        "armor_kills": 2,
+        "ground_vehicle_kills": 3,
+        "air_kills": 1,
+        "all_vehicle_kills": 4,
+        "deaths": 2,
+        "score": 155,
+        "baseline": [0, 0, 0, 0, 0, 0],
+        "latest": [12, 1, 2, 1, 2, 155]
+      }
+    }
+  ],
+  "attendance_records": [
+    {
+      "player_uid": "76561198000000000",
+      "name": "Example Present Player",
+      "present_at_start": true,
+      "present_at_end": true,
+      "joined_after_start": false,
+      "operation_seconds": 7200,
+      "attended_seconds": 7200,
+      "missed_seconds": 0,
+      "attendance_ratio": 1.0,
+      "attendance_percent": 100.0,
+      "attendance_threshold": 0.5,
+      "attendance_credit": true,
+      "stats": {
+        "infantry_kills": 12,
+        "vehicle_kills": 4,
+        "player_kills": 0,
+        "ai_kills": 12,
+        "friendly_kills": 0,
+        "deaths": 2
+      },
+      "scoreboard_stats": {
+        "stats_source": "arma_getPlayerScores_delta",
+        "infantry_kills": 12,
+        "soft_vehicle_kills": 1,
+        "armor_kills": 2,
+        "ground_vehicle_kills": 3,
+        "air_kills": 1,
+        "all_vehicle_kills": 4,
+        "deaths": 2,
+        "score": 155,
+        "baseline": [0, 0, 0, 0, 0, 0],
+        "latest": [12, 1, 2, 1, 2, 155]
+      }
+    },
+    {
+      "player_uid": "76561198000000001",
+      "name": "Disconnected Player",
+      "present_at_start": true,
+      "present_at_end": false,
+      "joined_after_start": false,
+      "operation_seconds": 7200,
+      "attended_seconds": 5400,
+      "missed_seconds": 1800,
+      "attendance_ratio": 0.75,
+      "attendance_percent": 75.0,
+      "attendance_threshold": 0.5,
+      "attendance_credit": true,
+      "stats": {
+        "infantry_kills": 3,
+        "vehicle_kills": 1,
+        "player_kills": 0,
+        "ai_kills": 3,
+        "friendly_kills": 0,
+        "deaths": 1
+      },
+      "scoreboard_stats": {
+        "stats_source": "arma_getPlayerScores_delta",
+        "infantry_kills": 3,
+        "soft_vehicle_kills": 1,
+        "armor_kills": 0,
+        "ground_vehicle_kills": 1,
+        "air_kills": 0,
+        "all_vehicle_kills": 1,
+        "deaths": 1,
+        "score": 40,
+        "baseline": [0, 0, 0, 0, 0, 0],
+        "latest": [3, 1, 0, 0, 1, 40]
+      }
+    }
+  ]
+}

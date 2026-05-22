@@ -8,6 +8,13 @@
 [QFUNC(buildPlayersSnapshot), compileScript ["\x\aase\addons\main\functions\fnc_buildPlayersSnapshot.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationStartPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationStartPayload.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationFinishPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreNormalizeArray), compileScript ["\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreInit), compileScript ["\x\aase\addons\main\functions\fnc_scoreInit.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreCaptureUnit), compileScript ["\x\aase\addons\main\functions\fnc_scoreCaptureUnit.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreCaptureCurrentPlayers), compileScript ["\x\aase\addons\main\functions\fnc_scoreCaptureCurrentPlayers.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreDelta), compileScript ["\x\aase\addons\main\functions\fnc_scoreDelta.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreStatsForUid), compileScript ["\x\aase\addons\main\functions\fnc_scoreStatsForUid.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(scoreAttachStats), compileScript ["\x\aase\addons\main\functions\fnc_scoreAttachStats.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(presenceInit), compileScript ["\x\aase\addons\main\functions\fnc_presenceInit.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(presenceRegisterHandlers), compileScript ["\x\aase\addons\main\functions\fnc_presenceRegisterHandlers.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(presenceStartLoop), compileScript ["\x\aase\addons\main\functions\fnc_presenceStartLoop.sqf"]] call CBA_fnc_compileFunction;

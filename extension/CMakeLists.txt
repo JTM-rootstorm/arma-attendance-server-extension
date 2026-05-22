@@ -107,7 +107,16 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/operation_finish_with_stats.json
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/start-operation.web-frontend.example.json
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation.web-frontend.example.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation-scoreboard-stats.example.json
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/finish-operation-with-attendance-records.example.json
+    )
+
+    add_test(
+        NAME scoreboard_delta_cases
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/validate_scoreboard_deltas.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/scoreboard-delta-cases.json
     )
 
     add_test(

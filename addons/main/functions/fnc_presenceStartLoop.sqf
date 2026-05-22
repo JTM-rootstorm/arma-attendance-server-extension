@@ -11,6 +11,7 @@ _handle = [] spawn {
             private _uid = getPlayerUID _x;
             if (_uid isNotEqualTo "") then {
                 _seenNow set [_uid, true];
+                [_x] call AASE_fnc_scoreCaptureUnit;
                 [_x, false] call AASE_fnc_markPlayerPresentFromUnit;
             };
         } forEach allPlayers;

@@ -13,9 +13,11 @@ missionNamespace setVariable ["AASE_presenceReconcileSeconds", 30, false];
 missionNamespace setVariable ["AASE_presenceTrackingActive", true, false];
 missionNamespace setVariable ["AASE_presenceFinalized", false, false];
 
+[] call AASE_fnc_scoreInit;
 {
     [_x, true] call AASE_fnc_markPlayerPresentFromUnit;
 } forEach allPlayers;
+[] call AASE_fnc_scoreCaptureCurrentPlayers;
 
 [] call AASE_fnc_presenceRegisterHandlers;
 [] call AASE_fnc_presenceStartLoop;
