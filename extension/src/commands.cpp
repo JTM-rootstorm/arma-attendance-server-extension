@@ -18,6 +18,32 @@
 namespace arma_attendance {
 namespace {
 
+std::string DecodeSqfStringLiteral(std::string_view value) {
+    const auto first = value.find_first_not_of(" \t\r\n");
+    const auto last = value.find_last_not_of(" \t\r\n");
+    if (first == std::string_view::npos || value[first] != '"' || value[last] != '"') {
+        return std::string{value};
+    }
+
+    std::string decoded;
+    decoded.reserve(last - first);
+    for (auto index = first + 1; index < last; ++index) {
+        const char ch = value[index];
+        if (ch == '"' && index + 1 < last && value[index + 1] == '"') {
+            decoded.push_back('"');
+            ++index;
+            continue;
+        }
+        if (ch == '\\' && index + 1 < last && (value[index + 1] == '"' || value[index + 1] == '\\')) {
+            decoded.push_back(value[index + 1]);
+            ++index;
+            continue;
+        }
+        decoded.push_back(ch);
+    }
+    return decoded;
+}
+
 bool LooksLikeJsonBody(std::string_view body) {
     const auto first = body.find_first_not_of(" \t\r\n");
     if (first == std::string_view::npos) {
@@ -690,7 +716,7 @@ std::string ExecuteCommand(std::string_view command, int argc, const char* const
     std::vector<std::string> args;
     args.reserve(static_cast<size_t>(argc));
     for (int index = 0; index < argc; ++index) {
-        args.emplace_back(argv[index] == nullptr ? "" : argv[index]);
+        args.emplace_back(argv[index] == nullptr ? "" : DecodeSqfStringLiteral(argv[index]));
     }
     return ExecuteCommand(command, std::span<const std::string>{args.data(), args.size()});
 }

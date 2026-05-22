@@ -65,6 +65,28 @@ void SetEnv(const char* name, const char* value) {
 #endif
 }
 
+std::string SqfStringLiteral(const std::string& value) {
+    std::string encoded{"\""};
+    for (const char ch : value) {
+        if (ch == '"') {
+            encoded += "\"\"";
+        } else {
+            encoded.push_back(ch);
+        }
+    }
+    encoded.push_back('"');
+    return encoded;
+}
+
+std::string ExecuteArgs(std::string_view command, const std::vector<std::string>& args) {
+    std::vector<const char*> argv;
+    argv.reserve(args.size());
+    for (const auto& arg : args) {
+        argv.push_back(arg.c_str());
+    }
+    return arma_attendance::ExecuteCommand(command, static_cast<int>(argv.size()), argv.data());
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -107,15 +129,16 @@ int main(int argc, char** argv) {
     const auto health = arma_attendance::ExecuteCommand("health");
     ok = ExpectOk("health", health) && ok;
 
-    const std::vector<std::string> args{"hello from arma"};
-    const auto poke = arma_attendance::ExecuteCommand("poke", args);
+    const std::vector<std::string> args{SqfStringLiteral("hello from arma")};
+    const auto poke = ExecuteArgs("poke", args);
     ok = ExpectOk("poke", poke) && ok;
     ok = Contains(poke, "received") && ok;
     ok = ExpectNoToken(poke) && ok;
 
-    const std::vector<std::string> start_args{
+    const std::string start_payload{
         "{\"request_id\":\"ci:start:001\",\"payload_version\":1,\"mission\":{\"mission_uid\":\"ci-world:ci-mission:001\",\"mission_name\":\"CI Mission\",\"world_name\":\"VR\"},\"players\":[]}"};
-    const auto operation_start = arma_attendance::ExecuteCommand("operation_start", start_args);
+    const std::vector<std::string> start_args{SqfStringLiteral(start_payload)};
+    const auto operation_start = ExecuteArgs("operation_start", start_args);
     ok = ExpectOk("operation_start", operation_start) && ok;
     const auto operation_id = ExtractJsonStringField(operation_start, "operation_id");
     if (operation_id.empty()) {
@@ -124,13 +147,13 @@ int main(int argc, char** argv) {
     }
     ok = ExpectNoToken(operation_start) && ok;
 
-    const auto operation_start_replay = arma_attendance::ExecuteCommand("operation_start", start_args);
+    const auto operation_start_replay = ExecuteArgs("operation_start", start_args);
     ok = ExpectOk("operation_start replay", operation_start_replay) && ok;
     ok = Contains(operation_start_replay, "\"idempotent\":true") && ok;
 
     const std::vector<std::string> override_start_args{
-        "{\"request_id\":\"ci:start:override\",\"server_key\":\"wrong-server\",\"payload_version\":1,\"players\":[]}"};
-    const auto override_start = arma_attendance::ExecuteCommand("operation_start", override_start_args);
+        SqfStringLiteral("{\"request_id\":\"ci:start:override\",\"server_key\":\"wrong-server\",\"payload_version\":1,\"players\":[]}")};
+    const auto override_start = ExecuteArgs("operation_start", override_start_args);
     ok = ExpectOk("operation_start server-key override", override_start) && ok;
     const std::vector<std::string> override_ingest_args{"ci:start:override"};
     const auto override_ingest = arma_attendance::ExecuteCommand("ingest_request_get", override_ingest_args);
@@ -144,9 +167,9 @@ int main(int argc, char** argv) {
     SetEnv("AASE_SERVER_KEY", "mismatch-server");
     arma_attendance::ExecuteCommand("reload_config");
     const std::vector<std::string> mismatch_finish_args{
-        operation_id,
-        "{\"request_id\":\"ci:finish:mismatch\",\"payload_version\":1,\"players\":[]}"};
-    const auto mismatch_finish = arma_attendance::ExecuteCommand("operation_finish", mismatch_finish_args);
+        SqfStringLiteral(operation_id),
+        SqfStringLiteral("{\"request_id\":\"ci:finish:mismatch\",\"payload_version\":1,\"players\":[]}")};
+    const auto mismatch_finish = ExecuteArgs("operation_finish", mismatch_finish_args);
     if (!Contains(mismatch_finish, "\"terminal\":true") || !Contains(mismatch_finish, "server_key_mismatch")) {
         std::cerr << "operation_finish server-key mismatch check failed: " << mismatch_finish << '\n';
         ok = false;
@@ -158,9 +181,9 @@ int main(int argc, char** argv) {
     arma_attendance::ExecuteCommand("reload_config");
 
     const std::vector<std::string> finish_args{
-        operation_id,
-        R"json({"request_id":"ci:finish:001","payload_version":1,"players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json"};
-    const auto operation_finish = arma_attendance::ExecuteCommand("operation_finish", finish_args);
+        SqfStringLiteral(operation_id),
+        SqfStringLiteral(R"json({"request_id":"ci:finish:001","payload_version":1,"players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json")};
+    const auto operation_finish = ExecuteArgs("operation_finish", finish_args);
     ok = ExpectOk("operation_finish", operation_finish) && ok;
     ok = Contains(operation_finish, "\"status\":\"finished\"") && ok;
     ok = ExpectNoToken(operation_finish) && ok;
@@ -203,8 +226,8 @@ int main(int argc, char** argv) {
     SetEnv("AASE_BASE_URL", "http://127.0.0.1:9");
     arma_attendance::ExecuteCommand("reload_config");
     const std::vector<std::string> offline_args{
-        "{\"request_id\":\"ci:start:offline\",\"payload_version\":1,\"players\":[]}"};
-    const auto offline_start = arma_attendance::ExecuteCommand("operation_start", offline_args);
+        SqfStringLiteral("{\"request_id\":\"ci:start:offline\",\"payload_version\":1,\"players\":[]}")};
+    const auto offline_start = ExecuteArgs("operation_start", offline_args);
     if (!Contains(offline_start, "\"queued\":true")) {
         std::cerr << "operation_start offline queue check failed: " << offline_start << '\n';
         ok = false;
