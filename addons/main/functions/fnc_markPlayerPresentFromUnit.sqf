@@ -2,12 +2,14 @@ params ["_unit", ["_presentAtStart", false]];
 
 if (!isServer) exitWith {};
 if (isNull _unit) exitWith {};
+if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {};
 if (!isPlayer _unit) exitWith {};
 if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false]) && {!(missionNamespace getVariable ["AASE_presenceFinalized", false])}) exitWith {};
 
 private _uid = getPlayerUID _unit;
 if (_uid isEqualTo "") exitWith {};
 
+private _playerName = [name _unit, "Unknown Player"] call AASE_fnc_sanitizePlayerName;
 private _now = serverTime;
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 private _record = _ledger getOrDefault [_uid, createHashMap];
@@ -21,7 +23,7 @@ if (!_wasKnown) then {
 
     _record = createHashMapFromArray [
         ["uid", _uid],
-        ["name", name _unit],
+        ["name", _playerName],
         ["state", "present"],
         ["active_since", _now],
         ["attended_seconds", 0],
@@ -73,7 +75,7 @@ if (_role isEqualTo "") then {
     _role = typeOf _unit;
 };
 
-_record set ["name", name _unit];
+_record set ["name", _playerName];
 _record set ["last_seen_at", _now];
 _record set ["side", str (side (group _unit))];
 _record set ["group", groupId (group _unit)];

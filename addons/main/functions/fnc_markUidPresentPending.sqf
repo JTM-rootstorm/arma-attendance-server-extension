@@ -4,6 +4,7 @@ if (!isServer) exitWith {};
 if (_uid isEqualTo "") exitWith {};
 if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false]) && {!(missionNamespace getVariable ["AASE_presenceFinalized", false])}) exitWith {};
 
+_name = [_name] call AASE_fnc_sanitizePlayerName;
 private _now = serverTime;
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 private _record = _ledger getOrDefault [_uid, createHashMap];

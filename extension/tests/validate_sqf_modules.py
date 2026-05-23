@@ -80,6 +80,157 @@ def validate_operation_json(root):
     return ok
 
 
+def validate_player_name_sanitizer(root):
+    checks = {
+        "addons/main/XEH_PREP.hpp": [
+            ("sanitizePlayerName compile", "fnc_sanitizePlayerName.sqf"),
+        ],
+        "addons/main/config.cpp": [
+            ("sanitizePlayerName CfgFunctions entry", "class sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_sanitizePlayerName.sqf": [
+            ("digit allowance", "_x >= 48"),
+            ("uppercase allowance", "_x >= 65"),
+            ("lowercase allowance", "_x >= 97"),
+            ("fallback handling", "_fallback"),
+        ],
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markPlayerAbsent.sqf": [
+            ("absence name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markUidPresentPending.sqf": [
+            ("pending reconnect name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_incrementPresenceStat.sqf": [
+            ("stat name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
+            ("attendance record name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+    }
+    forbidden = {
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot must not send raw player name", '["name", name _unit]'),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence record must not store raw player name", '["name", name _unit]'),
+            ("presence update must not store raw player name", '_record set ["name", name _unit]'),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture must not store raw player name", '["name", name _unit]'),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+        for name, needle in forbidden.get(relative, []):
+            if needle in text:
+                print(f"[FAIL] {relative}: {name}", file=sys.stderr)
+                ok = False
+
+    if ok:
+        print("[OK] SQF player name sanitization")
+    return ok
+
+
+def validate_headless_client_filter(root):
+    checks = {
+        "addons/main/XEH_PREP.hpp": [
+            ("isHeadlessClient compile", "fnc_isHeadlessClient.sqf"),
+            ("activePlayerUnits compile", "fnc_activePlayerUnits.sqf"),
+        ],
+        "addons/main/config.cpp": [
+            ("isHeadlessClient CfgFunctions entry", "class isHeadlessClient"),
+            ("activePlayerUnits CfgFunctions entry", "class activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_isHeadlessClient.sqf": [
+            ("HeadlessClient_F detection", "HeadlessClient_F"),
+            ("entities filter", 'entities "HeadlessClient_F"'),
+        ],
+        "addons/main/functions/fnc_activePlayerUnits.sqf": [
+            ("allPlayers HC subtraction", 'allPlayers - (entities "HeadlessClient_F")'),
+        ],
+        "addons/main/functions/fnc_buildPlayersSnapshot.sqf": [
+            ("snapshot loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureCurrentPlayers.sqf": [
+            ("score loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceInit.sqf": [
+            ("init loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceStartLoop.sqf": [
+            ("reconcile loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
+            ("finish loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
+            ("connect resolves active player unit", "AASE_fnc_activePlayerUnits"),
+            ("disconnect skips HC unit", "AASE_fnc_isHeadlessClient"),
+            ("disconnect skips unknown UID", "!(_uid in _ledger)"),
+        ],
+    }
+    forbidden = {
+        "addons/main/functions/fnc_buildPlayersSnapshot.sqf": [
+            ("snapshot loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureCurrentPlayers.sqf": [
+            ("score loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceInit.sqf": [
+            ("init loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceStartLoop.sqf": [
+            ("reconcile loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
+            ("finish loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
+            ("connect must not mark pending UID without unit classification", "AASE_fnc_markUidPresentPending"),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+        for name, needle in forbidden.get(relative, []):
+            if needle in text:
+                print(f"[FAIL] {relative}: {name}", file=sys.stderr)
+                ok = False
+
+    if ok:
+        print("[OK] SQF headless client filtering")
+    return ok
+
+
 def validate_scoreboard_stats(root):
     required_functions = (
         "scoreNormalizeArray",
@@ -146,6 +297,8 @@ def main(argv):
     for module in MODULES:
         ok = validate_module_cleanup(root, module) and ok
     ok = validate_operation_json(root) and ok
+    ok = validate_player_name_sanitizer(root) and ok
+    ok = validate_headless_client_filter(root) and ok
     ok = validate_scoreboard_stats(root) and ok
     return 0 if ok else 1
 

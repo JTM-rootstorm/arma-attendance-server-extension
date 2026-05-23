@@ -29,6 +29,15 @@ class CfgFunctions {
             class encodeJson {
                 file = "\x\aase\addons\main\functions\fnc_encodeJson.sqf";
             };
+            class sanitizePlayerName {
+                file = "\x\aase\addons\main\functions\fnc_sanitizePlayerName.sqf";
+            };
+            class isHeadlessClient {
+                file = "\x\aase\addons\main\functions\fnc_isHeadlessClient.sqf";
+            };
+            class activePlayerUnits {
+                file = "\x\aase\addons\main\functions\fnc_activePlayerUnits.sqf";
+            };
             class callExtension {
                 file = "\x\aase\addons\main\functions\fnc_callExtension.sqf";
             };

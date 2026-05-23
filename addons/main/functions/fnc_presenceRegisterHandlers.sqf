@@ -8,7 +8,23 @@ private _connectedId = addMissionEventHandler ["PlayerConnected", {
     if (!isServer) exitWith {};
     if (_uid isEqualTo "") exitWith {};
 
-    [_uid, _name] call AASE_fnc_markUidPresentPending;
+    [_uid, _name] spawn {
+        params ["_uid", "_name"];
+
+        sleep 1;
+        if (!isServer) exitWith {};
+        if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false])) exitWith {};
+
+        private _unit = objNull;
+        {
+            if ((getPlayerUID _x) isEqualTo _uid) exitWith {
+                _unit = _x;
+            };
+        } forEach ([] call AASE_fnc_activePlayerUnits);
+
+        if (isNull _unit) exitWith {};
+        [_unit, false] call AASE_fnc_markPlayerPresentFromUnit;
+    };
 }];
 
 private _disconnectedId = addMissionEventHandler ["PlayerDisconnected", {
@@ -23,6 +39,11 @@ private _disconnectedId = addMissionEventHandler ["PlayerDisconnected", {
             _unit = _x;
         };
     } forEach allPlayers;
+    if (!isNull _unit && {[_unit] call AASE_fnc_isHeadlessClient}) exitWith {};
+
+    private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
+    if ((isNull _unit) && {!(_uid in _ledger)}) exitWith {};
+
     if (!isNull _unit) then {
         [_unit] call AASE_fnc_scoreCaptureUnit;
     };
@@ -38,7 +59,7 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
     if (!(missionNamespace getVariable ["AASE_enableExperimentalKillLedger", false])) exitWith {};
     if (isNull _killed) exitWith {};
 
-    if (isPlayer _killed) then {
+    if (isPlayer _killed && {!([_killed] call AASE_fnc_isHeadlessClient)}) then {
         private _killedUid = getPlayerUID _killed;
         if (_killedUid isNotEqualTo "") then {
             [_killedUid, name _killed, "deaths"] call AASE_fnc_incrementPresenceStat;
@@ -50,6 +71,7 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
         _killerUnit = _killer;
     };
     if (isNull _killerUnit) exitWith {};
+    if ([_killerUnit] call AASE_fnc_isHeadlessClient) exitWith {};
     if (!isPlayer _killerUnit) exitWith {};
     if (_killerUnit isEqualTo _killed) exitWith {};
 
@@ -58,7 +80,7 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
 
     [_killerUnit, false] call AASE_fnc_markPlayerPresentFromUnit;
 
-    if (isPlayer _killed) then {
+    if (isPlayer _killed && {!([_killed] call AASE_fnc_isHeadlessClient)}) then {
         [_killerUid, name _killerUnit, "player_kills"] call AASE_fnc_incrementPresenceStat;
     } else {
         if (_killed isKindOf "Man") then {

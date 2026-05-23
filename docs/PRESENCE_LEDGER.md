@@ -13,7 +13,7 @@ Tracked state is keyed by Arma UID and records:
 - canonical stats: `infantry_kills`, `vehicle_kills`, `player_kills`,
   `ai_kills`, `friendly_kills`, and `deaths`
 
-`PlayerConnected` marks a UID present as soon as the server sees the connection event. `PlayerDisconnected` closes the active interval without removing the UID. A periodic server reconcile loop also scans `allPlayers` so late joins and missed events converge before finish.
+`PlayerConnected` resolves the connecting UID back to a real player unit before marking it present. `PlayerDisconnected` closes the active interval without removing the UID. A periodic server reconcile loop also scans player units so late joins and missed events converge before finish. Headless clients are filtered out before snapshots, scoreboard capture, and ledger updates.
 
 At finish, the addon finalizes every known UID into top-level `attendance_records` and keeps the existing top-level `players` array for the physically present-at-end snapshot with stats. The native extension does not calculate attendance; it forwards the JSON payload to the web API.
 
