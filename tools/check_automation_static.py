@@ -140,7 +140,10 @@ def validate_secrets(root: Path) -> bool:
         re.compile(r"aat_arma_server_(?!REPLACE_WITH_REAL_TOKEN)[A-Za-z0-9_-]+"),
     )
     text_suffixes = {".cpp", ".hpp", ".h", ".md", ".py", ".sqf", ".toml", ".txt", ".xml", ".yml", ".yaml"}
+    self_path = Path(__file__).resolve()
     for path in tracked_files(root):
+        if path.resolve() == self_path:
+            continue
         if path.name.endswith((".biprivatekey", ".hemttprivatekey")):
             ok = bad(f"Private signing key is tracked: {path.relative_to(root)}") and ok
             continue
