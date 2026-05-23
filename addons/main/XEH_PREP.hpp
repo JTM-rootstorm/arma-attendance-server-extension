@@ -13,6 +13,14 @@
 [QFUNC(buildOperationFinishPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(deleteModuleLogic), compileScript ["\x\aase\addons\main\functions\fnc_deleteModuleLogic.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationSource), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationSource.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(registerAutomationSettings), compileScript ["\x\aase\addons\main\functions\fnc_registerAutomationSettings.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(autoInit), compileScript ["\x\aase\addons\main\functions\fnc_autoInit.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(startAutomation), compileScript ["\x\aase\addons\main\functions\fnc_startAutomation.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(stopAutomation), compileScript ["\x\aase\addons\main\functions\fnc_stopAutomation.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(autoTriggerWatcher), compileScript ["\x\aase\addons\main\functions\fnc_autoTriggerWatcher.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(autoDelayedStart), compileScript ["\x\aase\addons\main\functions\fnc_autoDelayedStart.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(autoMissionEndFallback), compileScript ["\x\aase\addons\main\functions\fnc_autoMissionEndFallback.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(findMissionTriggerByName), compileScript ["\x\aase\addons\main\functions\fnc_findMissionTriggerByName.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreNormalizeArray), compileScript ["\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreInit), compileScript ["\x\aase\addons\main\functions\fnc_scoreInit.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreCaptureUnit), compileScript ["\x\aase\addons\main\functions\fnc_scoreCaptureUnit.sqf"]] call CBA_fnc_compileFunction;
