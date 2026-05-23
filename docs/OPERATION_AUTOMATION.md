@@ -52,3 +52,17 @@ force AASE_autoStartMinPlayers = 5;
 If a Zeus module or named trigger starts the operation before the delay path
 fires, delayed auto-start marks itself complete and does not start a second
 operation.
+
+## Mission-End Fallback
+
+Mission-end fallback is disabled by default. When enabled, the server registers
+one mission-ended handler and attempts a final operation finish only if an
+operation is still active:
+
+```sqf
+force AASE_enableMissionEndFallback = true;
+```
+
+The finish payload uses `mission_end_fallback` source metadata. If the web API
+cannot be reached during shutdown, the native extension queue preserves the
+finish request for a later flush.
