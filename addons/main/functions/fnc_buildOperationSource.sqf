@@ -8,6 +8,17 @@ if (_detail isEqualTo "") then {
     _detail = _sourceMeta getOrDefault ["entrypoint_detail", ""];
 };
 
+private _knownSourceKinds = [
+    "zeus_module",
+    "named_trigger",
+    "delayed_auto_start",
+    "mission_end_fallback",
+    "scripted"
+];
+if !(_sourceKind in _knownSourceKinds) then {
+    _sourceKind = "scripted";
+};
+
 private _automation = _sourceKind in [
     "named_trigger",
     "delayed_auto_start",
