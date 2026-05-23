@@ -13,6 +13,20 @@ force AASE_autoFinishMode = 0;
 force AASE_enableMissionEndFallback = false;
 ```
 
+## Manual Zeus Controls
+
+Automation does not remove or hide the existing Zeus modules:
+
+```text
+Attendance: Debug API Poke
+Attendance: Start Operation
+Attendance: Finish Operation
+```
+
+The modules remain the manual control path for admins and Zeus operators. They
+run server-side, call the common operation functions, and delete their module
+logic after success, failure, or an inactive/non-server exit.
+
 ## Named Triggers
 
 Mission makers can place normal vanilla triggers and name them with mission

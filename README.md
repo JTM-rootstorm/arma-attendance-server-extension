@@ -68,6 +68,8 @@ force AASE_enableMissionEndFallback = false;
 
 Server operators can later enable named trigger or delayed start automation with
 CBA settings without changing API tokens or native extension configuration.
+The Zeus modules remain available as manual controls for debug poke, operation
+start, and operation finish.
 
 ## Native Commands
 
