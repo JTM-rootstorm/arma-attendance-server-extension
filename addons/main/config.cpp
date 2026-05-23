@@ -62,6 +62,12 @@ class CfgFunctions {
             class buildOperationFinishPayload {
                 file = "\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
             };
+            class deleteModuleLogic {
+                file = "\x\aase\addons\main\functions\fnc_deleteModuleLogic.sqf";
+            };
+            class buildOperationSource {
+                file = "\x\aase\addons\main\functions\fnc_buildOperationSource.sqf";
+            };
             class scoreNormalizeArray {
                 file = "\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf";
             };

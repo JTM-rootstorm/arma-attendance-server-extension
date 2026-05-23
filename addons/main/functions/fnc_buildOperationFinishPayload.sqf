@@ -1,18 +1,19 @@
-params ["_operationId"];
+params [
+    "_operationId",
+    ["_sourceKind", "scripted"],
+    ["_sourceMeta", createHashMap]
+];
 
 private _mission = [] call AASE_fnc_buildMissionPayload;
 private _requestId = format ["arma3:finish:%1:%2", _operationId, round diag_tickTime];
+private _source = [_sourceKind, _sourceMeta] call AASE_fnc_buildOperationSource;
+_source set ["stats_source", "arma_getPlayerScores_delta"];
 
 createHashMapFromArray [
     ["request_id", _requestId],
     ["payload_version", 1],
     ["mission", _mission],
-    ["source", createHashMapFromArray [
-        ["kind", "arma3-addon"],
-        ["addon", "aase_main"],
-        ["extension", "arma_attendance"],
-        ["stats_source", "arma_getPlayerScores_delta"]
-    ]],
+    ["source", _source],
     ["operation_id", _operationId],
     ["players", [true] call AASE_fnc_buildPlayersSnapshot],
     ["attendance_records", [] call AASE_fnc_buildAttendanceRecords]

@@ -11,6 +11,8 @@
 [QFUNC(buildPlayersSnapshot), compileScript ["\x\aase\addons\main\functions\fnc_buildPlayersSnapshot.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationStartPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationStartPayload.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(buildOperationFinishPayload), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(deleteModuleLogic), compileScript ["\x\aase\addons\main\functions\fnc_deleteModuleLogic.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(buildOperationSource), compileScript ["\x\aase\addons\main\functions\fnc_buildOperationSource.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreNormalizeArray), compileScript ["\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreInit), compileScript ["\x\aase\addons\main\functions\fnc_scoreInit.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreCaptureUnit), compileScript ["\x\aase\addons\main\functions\fnc_scoreCaptureUnit.sqf"]] call CBA_fnc_compileFunction;

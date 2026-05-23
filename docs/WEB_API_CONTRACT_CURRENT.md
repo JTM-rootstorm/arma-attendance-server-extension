@@ -86,9 +86,11 @@ Recommended extension payload:
   },
   "source": {
     "kind": "arma3-addon",
-    "addon": "aase_main",
+    "entrypoint": "zeus_module",
+    "entrypoint_detail": "Attendance Start Operation",
+    "addon": "arma_attendance",
     "extension": "arma_attendance",
-    "stats_source": "arma_getPlayerScores_delta"
+    "automation": false
   },
   "players": []
 }
@@ -142,8 +144,12 @@ Recommended extension payload:
   },
   "source": {
     "kind": "arma3-addon",
-    "addon": "aase_main",
-    "extension": "arma_attendance"
+    "entrypoint": "zeus_module",
+    "entrypoint_detail": "Attendance Finish Operation",
+    "addon": "arma_attendance",
+    "extension": "arma_attendance",
+    "automation": false,
+    "stats_source": "arma_getPlayerScores_delta"
   },
   "players": [
     {

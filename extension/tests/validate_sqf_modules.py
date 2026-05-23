@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 MODULES = (
+    "addons/main/functions/fnc_moduleDebugPoke.sqf",
     "addons/main/functions/fnc_moduleStartOperation.sqf",
     "addons/main/functions/fnc_moduleFinishOperation.sqf",
 )
@@ -12,11 +13,12 @@ MODULES = (
 def validate_module_cleanup(root, relative):
     path = root / relative
     text = path.read_text(encoding="utf-8")
+    helper_cleanup = "AASE_fnc_deleteModuleLogic" in text
     checks = {
-        "cleanup closure": "private _cleanup" in text,
-        "deleteVehicle": "deleteVehicle _moduleLogic" in text,
-        "non-server cleanup": "if (!isServer) exitWith" in text and "[_logic] call _cleanup" in text,
-        "inactive cleanup": "if (!_activated) exitWith" in text and text.count("[_logic] call _cleanup") >= 3,
+        "cleanup helper": helper_cleanup or "private _cleanup" in text,
+        "delete logic": helper_cleanup or "deleteVehicle _moduleLogic" in text,
+        "non-server cleanup": "if (!isServer) exitWith" in text and (helper_cleanup or "[_logic] call _cleanup" in text),
+        "inactive cleanup": "if (!_activated) exitWith" in text and (text.count("AASE_fnc_deleteModuleLogic") >= 3 or text.count("[_logic] call _cleanup") >= 3),
         "result return": text.rstrip().endswith("_result"),
     }
     ok = True
