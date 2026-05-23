@@ -1,23 +1,22 @@
 params ["_logic", "_units", "_activated"];
 
-private _cleanup = {
-    params ["_moduleLogic"];
-    if (!isNull _moduleLogic) then {
-        deleteVehicle _moduleLogic;
-    };
-};
-
 if (!isServer) exitWith {
-    [_logic] call _cleanup;
+    [_logic] call AASE_fnc_deleteModuleLogic;
 };
 
 if (!_activated) exitWith {
-    [_logic] call _cleanup;
+    [_logic] call AASE_fnc_deleteModuleLogic;
 };
 
-private _result = [] call AASE_fnc_operationStart;
+private _result = [
+    "zeus_module",
+    createHashMapFromArray [
+        ["source_detail", "Attendance Start Operation"],
+        ["logic_net_id", netId _logic]
+    ]
+] call AASE_fnc_operationStart;
 [format ["Start operation result: %1", _result], "INFO"] call AASE_fnc_log;
 
-[_logic] call _cleanup;
+[_logic] call AASE_fnc_deleteModuleLogic;
 
 _result

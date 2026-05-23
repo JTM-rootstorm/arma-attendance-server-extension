@@ -6,7 +6,7 @@ class CfgPatches {
         units[] = {"AASE_Module_DebugPoke", "AASE_Module_StartOperation", "AASE_Module_FinishOperation"};
         weapons[] = {};
         requiredVersion = 2.18;
-        requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F_Curator"};
+        requiredAddons[] = {"cba_main", "cba_settings", "cba_xeh", "A3_Modules_F_Curator"};
         author = "JTM-rootstorm";
     };
 };
@@ -61,6 +61,36 @@ class CfgFunctions {
             };
             class buildOperationFinishPayload {
                 file = "\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
+            };
+            class deleteModuleLogic {
+                file = "\x\aase\addons\main\functions\fnc_deleteModuleLogic.sqf";
+            };
+            class buildOperationSource {
+                file = "\x\aase\addons\main\functions\fnc_buildOperationSource.sqf";
+            };
+            class registerAutomationSettings {
+                file = "\x\aase\addons\main\functions\fnc_registerAutomationSettings.sqf";
+            };
+            class autoInit {
+                file = "\x\aase\addons\main\functions\fnc_autoInit.sqf";
+            };
+            class startAutomation {
+                file = "\x\aase\addons\main\functions\fnc_startAutomation.sqf";
+            };
+            class stopAutomation {
+                file = "\x\aase\addons\main\functions\fnc_stopAutomation.sqf";
+            };
+            class autoTriggerWatcher {
+                file = "\x\aase\addons\main\functions\fnc_autoTriggerWatcher.sqf";
+            };
+            class autoDelayedStart {
+                file = "\x\aase\addons\main\functions\fnc_autoDelayedStart.sqf";
+            };
+            class autoMissionEndFallback {
+                file = "\x\aase\addons\main\functions\fnc_autoMissionEndFallback.sqf";
+            };
+            class findMissionTriggerByName {
+                file = "\x\aase\addons\main\functions\fnc_findMissionTriggerByName.sqf";
             };
             class scoreNormalizeArray {
                 file = "\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf";

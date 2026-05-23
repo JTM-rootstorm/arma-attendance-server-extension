@@ -55,6 +55,22 @@ ctest --test-dir build/extension-linux --output-on-failure
 
 The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
 
+## CBA Automation Settings
+
+The addon registers server/global CBA settings under `Arma Attendance / Automation`.
+Automation is manual-only by default:
+
+```sqf
+force AASE_autoStartMode = 0;
+force AASE_autoFinishMode = 0;
+force AASE_enableMissionEndFallback = false;
+```
+
+Server operators can later enable named trigger or delayed start automation with
+CBA settings without changing API tokens or native extension configuration.
+The Zeus modules remain available as manual controls for debug poke, operation
+start, and operation finish.
+
 ## Native Commands
 
 The extension currently supports:
