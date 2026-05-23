@@ -16,3 +16,4 @@ missionNamespace setVariable ["AASE_autoTriggerWatcherRunning", false, false];
 missionNamespace setVariable ["AASE_autoDelayedStartRunning", false, false];
 missionNamespace setVariable ["AASE_autoStartTriggerFired", false, false];
 missionNamespace setVariable ["AASE_autoFinishTriggerFired", false, false];
+missionNamespace setVariable ["AASE_autoDelayedStartFired", false, false];

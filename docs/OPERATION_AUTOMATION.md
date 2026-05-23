@@ -37,3 +37,18 @@ The watcher runs only on the server. Each trigger fires at most once. If the
 start trigger activates while an operation is already active, or the finish
 trigger activates before one exists, the addon logs the condition and does not
 call the native extension.
+
+## Delayed Auto-Start
+
+Delayed auto-start waits for mission time to begin, then waits the configured
+delay and minimum non-headless player count before starting attendance:
+
+```sqf
+force AASE_autoStartMode = 2;
+force AASE_autoStartDelaySeconds = 300;
+force AASE_autoStartMinPlayers = 5;
+```
+
+If a Zeus module or named trigger starts the operation before the delay path
+fires, delayed auto-start marks itself complete and does not start a second
+operation.
