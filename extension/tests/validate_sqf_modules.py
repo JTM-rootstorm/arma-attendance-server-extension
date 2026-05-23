@@ -80,6 +80,72 @@ def validate_operation_json(root):
     return ok
 
 
+def validate_player_name_sanitizer(root):
+    checks = {
+        "addons/main/XEH_PREP.hpp": [
+            ("sanitizePlayerName compile", "fnc_sanitizePlayerName.sqf"),
+        ],
+        "addons/main/config.cpp": [
+            ("sanitizePlayerName CfgFunctions entry", "class sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_sanitizePlayerName.sqf": [
+            ("digit allowance", "_x >= 48"),
+            ("uppercase allowance", "_x >= 65"),
+            ("lowercase allowance", "_x >= 97"),
+            ("fallback handling", "_fallback"),
+        ],
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markPlayerAbsent.sqf": [
+            ("absence name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_markUidPresentPending.sqf": [
+            ("pending reconnect name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_incrementPresenceStat.sqf": [
+            ("stat name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+        "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
+            ("attendance record name sanitization", "AASE_fnc_sanitizePlayerName"),
+        ],
+    }
+    forbidden = {
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot must not send raw player name", '["name", name _unit]'),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence record must not store raw player name", '["name", name _unit]'),
+            ("presence update must not store raw player name", '_record set ["name", name _unit]'),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture must not store raw player name", '["name", name _unit]'),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+        for name, needle in forbidden.get(relative, []):
+            if needle in text:
+                print(f"[FAIL] {relative}: {name}", file=sys.stderr)
+                ok = False
+
+    if ok:
+        print("[OK] SQF player name sanitization")
+    return ok
+
+
 def validate_scoreboard_stats(root):
     required_functions = (
         "scoreNormalizeArray",
@@ -146,6 +212,7 @@ def main(argv):
     for module in MODULES:
         ok = validate_module_cleanup(root, module) and ok
     ok = validate_operation_json(root) and ok
+    ok = validate_player_name_sanitizer(root) and ok
     ok = validate_scoreboard_stats(root) and ok
     return 0 if ok else 1
 

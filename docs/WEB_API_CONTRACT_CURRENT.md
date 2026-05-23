@@ -222,7 +222,10 @@ UID fields: player_uid, arma_uid, steam_id, uid
 Name fields: name, player_name, display_name
 ```
 
-Use `player_uid` and `name` for clarity.
+Use `player_uid` and `name` for clarity. The addon sanitizes player names to
+ASCII alphanumeric words separated by single spaces before sending them, so
+quotes, control characters, symbols, and non-ASCII text cannot break the SQF
+JSON payload boundary.
 
 Metadata fields currently normalized:
 

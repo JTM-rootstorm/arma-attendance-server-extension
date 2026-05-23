@@ -15,6 +15,7 @@ private _records = [];
 
 {
     private _record = _y;
+    private _playerName = [_record getOrDefault ["name", ""], "Unknown Player"] call AASE_fnc_sanitizePlayerName;
     private _attendedSeconds = _record getOrDefault ["attended_seconds", 0];
     if ((_record getOrDefault ["state", "unknown"]) isEqualTo "present") then {
         private _activeSince = _record getOrDefault ["active_since", _endedAt];
@@ -57,7 +58,7 @@ private _records = [];
 
     private _attendanceRecord = createHashMapFromArray [
         ["player_uid", _record getOrDefault ["uid", _x]],
-        ["name", _record getOrDefault ["name", ""]],
+        ["name", _playerName],
         ["present_at_start", _record getOrDefault ["present_at_start", false]],
         ["present_at_end", _record getOrDefault ["present_at_end", false]],
         ["joined_after_start", _record getOrDefault ["joined_after_start", false]],

@@ -3,6 +3,7 @@ params ["_unit", ["_includeStats", false]];
 private _uid = getPlayerUID _unit;
 if (_uid isEqualTo "") exitWith {createHashMap};
 
+private _playerName = [name _unit, "Unknown Player"] call AASE_fnc_sanitizePlayerName;
 private _vehicle = vehicle _unit;
 private _vehicleClass = "";
 if (_vehicle isNotEqualTo _unit) then {
@@ -16,7 +17,7 @@ if (_role isEqualTo "") then {
 
 private _snapshot = createHashMapFromArray [
     ["player_uid", _uid],
-    ["name", name _unit],
+    ["name", _playerName],
     ["side", str (side (group _unit))],
     ["group", groupId (group _unit)],
     ["role", _role],

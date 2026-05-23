@@ -4,6 +4,7 @@ if (!isServer) exitWith {};
 if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false])) exitWith {};
 if (_uid isEqualTo "") exitWith {};
 
+_name = [_name] call AASE_fnc_sanitizePlayerName;
 private _validStats = [
     "infantry_kills",
     "vehicle_kills",
