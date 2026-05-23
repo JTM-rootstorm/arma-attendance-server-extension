@@ -2,6 +2,7 @@ params ["_unit", ["_presentAtStart", false]];
 
 if (!isServer) exitWith {};
 if (isNull _unit) exitWith {};
+if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {};
 if (!isPlayer _unit) exitWith {};
 if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false]) && {!(missionNamespace getVariable ["AASE_presenceFinalized", false])}) exitWith {};
 

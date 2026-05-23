@@ -1,6 +1,8 @@
 [QFUNC(log), compileScript ["\x\aase\addons\main\functions\fnc_log.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(encodeJson), compileScript ["\x\aase\addons\main\functions\fnc_encodeJson.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(sanitizePlayerName), compileScript ["\x\aase\addons\main\functions\fnc_sanitizePlayerName.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(isHeadlessClient), compileScript ["\x\aase\addons\main\functions\fnc_isHeadlessClient.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(activePlayerUnits), compileScript ["\x\aase\addons\main\functions\fnc_activePlayerUnits.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(callExtension), compileScript ["\x\aase\addons\main\functions\fnc_callExtension.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(poke), compileScript ["\x\aase\addons\main\functions\fnc_poke.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(moduleDebugPoke), compileScript ["\x\aase\addons\main\functions\fnc_moduleDebugPoke.sqf"]] call CBA_fnc_compileFunction;

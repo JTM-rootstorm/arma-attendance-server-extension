@@ -146,6 +146,91 @@ def validate_player_name_sanitizer(root):
     return ok
 
 
+def validate_headless_client_filter(root):
+    checks = {
+        "addons/main/XEH_PREP.hpp": [
+            ("isHeadlessClient compile", "fnc_isHeadlessClient.sqf"),
+            ("activePlayerUnits compile", "fnc_activePlayerUnits.sqf"),
+        ],
+        "addons/main/config.cpp": [
+            ("isHeadlessClient CfgFunctions entry", "class isHeadlessClient"),
+            ("activePlayerUnits CfgFunctions entry", "class activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_isHeadlessClient.sqf": [
+            ("HeadlessClient_F detection", "HeadlessClient_F"),
+            ("entities filter", 'entities "HeadlessClient_F"'),
+        ],
+        "addons/main/functions/fnc_activePlayerUnits.sqf": [
+            ("allPlayers HC subtraction", 'allPlayers - (entities "HeadlessClient_F")'),
+        ],
+        "addons/main/functions/fnc_buildPlayersSnapshot.sqf": [
+            ("snapshot loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureCurrentPlayers.sqf": [
+            ("score loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceInit.sqf": [
+            ("init loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceStartLoop.sqf": [
+            ("reconcile loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
+            ("finish loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+        ],
+        "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
+            ("snapshot rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
+            ("presence rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
+            ("score capture rejects HC unit", "AASE_fnc_isHeadlessClient"),
+        ],
+        "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
+            ("connect resolves active player unit", "AASE_fnc_activePlayerUnits"),
+            ("disconnect skips HC unit", "AASE_fnc_isHeadlessClient"),
+            ("disconnect skips unknown UID", "!(_uid in _ledger)"),
+        ],
+    }
+    forbidden = {
+        "addons/main/functions/fnc_buildPlayersSnapshot.sqf": [
+            ("snapshot loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_scoreCaptureCurrentPlayers.sqf": [
+            ("score loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceInit.sqf": [
+            ("init loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceStartLoop.sqf": [
+            ("reconcile loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
+            ("finish loop must not iterate raw allPlayers", "forEach allPlayers"),
+        ],
+        "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
+            ("connect must not mark pending UID without unit classification", "AASE_fnc_markUidPresentPending"),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+        for name, needle in forbidden.get(relative, []):
+            if needle in text:
+                print(f"[FAIL] {relative}: {name}", file=sys.stderr)
+                ok = False
+
+    if ok:
+        print("[OK] SQF headless client filtering")
+    return ok
+
+
 def validate_scoreboard_stats(root):
     required_functions = (
         "scoreNormalizeArray",
@@ -213,6 +298,7 @@ def main(argv):
         ok = validate_module_cleanup(root, module) and ok
     ok = validate_operation_json(root) and ok
     ok = validate_player_name_sanitizer(root) and ok
+    ok = validate_headless_client_filter(root) and ok
     ok = validate_scoreboard_stats(root) and ok
     return 0 if ok else 1
 

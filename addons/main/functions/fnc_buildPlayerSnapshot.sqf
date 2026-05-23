@@ -1,5 +1,7 @@
 params ["_unit", ["_includeStats", false]];
 
+if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {createHashMap};
+
 private _uid = getPlayerUID _unit;
 if (_uid isEqualTo "") exitWith {createHashMap};
 

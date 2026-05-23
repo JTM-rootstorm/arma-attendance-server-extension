@@ -2,6 +2,7 @@ params ["_unit"];
 
 if (!isServer) exitWith {false};
 if (isNull _unit) exitWith {false};
+if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {false};
 if (!isPlayer _unit) exitWith {false};
 
 private _uid = getPlayerUID _unit;

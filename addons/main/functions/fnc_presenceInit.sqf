@@ -16,7 +16,7 @@ missionNamespace setVariable ["AASE_presenceFinalized", false, false];
 [] call AASE_fnc_scoreInit;
 {
     [_x, true] call AASE_fnc_markPlayerPresentFromUnit;
-} forEach allPlayers;
+} forEach ([] call AASE_fnc_activePlayerUnits);
 [] call AASE_fnc_scoreCaptureCurrentPlayers;
 
 [] call AASE_fnc_presenceRegisterHandlers;

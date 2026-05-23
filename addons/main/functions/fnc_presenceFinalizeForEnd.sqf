@@ -16,7 +16,7 @@ private _presentAtEnd = createHashMap;
         [_x] call AASE_fnc_scoreCaptureUnit;
         [_x, false] call AASE_fnc_markPlayerPresentFromUnit;
     };
-} forEach allPlayers;
+} forEach ([] call AASE_fnc_activePlayerUnits);
 [] call AASE_fnc_scoreCaptureCurrentPlayers;
 
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];

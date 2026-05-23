@@ -6,6 +6,6 @@ private _players = [];
     if (count _snapshot > 0) then {
         _players pushBack _snapshot;
     };
-} forEach allPlayers;
+} forEach ([] call AASE_fnc_activePlayerUnits);
 
 _players
