@@ -2,7 +2,7 @@
 
 class CfgPatches {
     class aase_main {
-        name = "Arma Attendance";
+        name = "TCWA3 Stats Tracker";
         units[] = {"AASE_Module_DebugPoke", "AASE_Module_StartOperation", "AASE_Module_FinishOperation"};
         weapons[] = {};
         requiredVersion = 2.18;
@@ -13,7 +13,7 @@ class CfgPatches {
 
 class CfgFactionClasses {
     class AASE_Modules {
-        displayName = "Attendance";
+        displayName = "TCWA3 Stats Tracker";
         priority = 2;
         side = 7;
     };

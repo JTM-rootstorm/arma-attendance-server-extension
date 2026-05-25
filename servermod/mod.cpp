@@ -1,0 +1,13 @@
+name = "TCWA3 Stats Tracker Server Extension";
+picture = "";
+logo = "";
+logoOver = "";
+tooltip = "TCWA3 Stats Tracker Server Extension";
+tooltipOwned = "TCWA3 Stats Tracker Server Extension";
+overview = "Server-only native extension package for TCWA3 Stats Tracker. Load with -serverMod only.";
+author = "JTM-rootstorm";
+overviewPicture = "";
+hideName = 0;
+hidePicture = 0;
+actionName = "GitHub";
+action = "https://github.com/JTM-rootstorm/arma-attendance-server-extension";

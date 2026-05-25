@@ -26,7 +26,7 @@ cmake --build --preset linux-relwithdebinfo
 ctest --preset linux-relwithdebinfo
 ```
 
-The tests use a local mock API and the `AASE_*` environment variables. Keep real `arma_attendance.toml`, `.env` files, API tokens, and private BI keys out of the repo.
+The tests use a local mock API and the `AASE_*` environment variables. New server deployments can use `TCWA3_STATS_CONFIG_PATH` for an external real TOML, while `AASE_CONFIG_PATH` remains supported for compatibility. Keep real `arma_attendance.toml`, `tcwa3_stats_tracker.toml`, `.env` files, API tokens, queue files, logs, and private BI keys out of the repo.
 
 `ctest` starts `extension/tests/mock_api_server.py` automatically through `extension/tests/run_contract_smoke.py`, so no deployed web service or Arma server is required for the native contract smoke.
 

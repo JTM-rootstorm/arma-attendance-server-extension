@@ -1,12 +1,12 @@
 if (missionNamespace getVariable ["AASE_automationSettingsRegistered", false]) exitWith {};
 
-private _category = ["Arma Attendance", "Automation"];
+private _category = ["TCWA3 Stats Tracker", "Automation"];
 private _global = 2;
 
 [
     "AASE_autoStartMode",
     "LIST",
-    ["Auto start mode", "How Arma Attendance starts operation tracking automatically."],
+    ["Auto start mode", "How TCWA3 Stats Tracker starts operation tracking automatically."],
     _category,
     [[0, 1, 2], ["Disabled", "Named trigger", "Delay + min players"], 0],
     _global,
@@ -17,7 +17,7 @@ private _global = 2;
 [
     "AASE_autoFinishMode",
     "LIST",
-    ["Auto finish mode", "How Arma Attendance finishes operation tracking automatically."],
+    ["Auto finish mode", "How TCWA3 Stats Tracker finishes operation tracking automatically."],
     _category,
     [[0, 1], ["Disabled", "Named trigger"], 0],
     _global,

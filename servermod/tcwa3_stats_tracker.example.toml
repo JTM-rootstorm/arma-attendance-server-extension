@@ -1,9 +1,9 @@
 # TCWA3 Stats Tracker server extension config template.
 # Copy this file outside the Workshop folder before editing it.
-# Never commit the real arma_attendance.toml.
+# Never commit the real tcwa3_stats_tracker.toml.
 
 [server]
-server_key = "main-arma-linux-01"
+server_key = "main-linux-01"
 
 [http]
 base_url = "https://stats.example.com"

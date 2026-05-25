@@ -65,6 +65,14 @@ void SetEnv(const char* name, const char* value) {
 #endif
 }
 
+void UnsetEnv(const char* name) {
+#if defined(_WIN32)
+    _putenv_s(name, "");
+#else
+    unsetenv(name);
+#endif
+}
+
 std::string SqfStringLiteral(const std::string& value) {
     std::string encoded{"\""};
     for (const char ch : value) {
@@ -116,6 +124,7 @@ int main(int argc, char** argv) {
                << "api_token = \"dev-token\"\n"
                << "timeout_ms = 3000\n"
                << "verify_tls = false\n";
+        SetEnv("TCWA3_STATS_CONFIG_PATH", config_path.string().c_str());
     }
 
     const auto version = arma_attendance::ExecuteCommand("version");
@@ -124,7 +133,10 @@ int main(int argc, char** argv) {
     const auto config = arma_attendance::ExecuteCommand("config");
     ok = ExpectOk("config", config) && ok;
     ok = Contains(config, "\"source_path\"") && ok;
+    ok = Contains(config, "arma_attendance.toml") && ok;
     ok = ExpectNoToken(config) && ok;
+
+    UnsetEnv("TCWA3_STATS_CONFIG_PATH");
 
     const auto health = arma_attendance::ExecuteCommand("health");
     ok = ExpectOk("health", health) && ok;

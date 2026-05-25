@@ -1,6 +1,6 @@
-# Arma Attendance Server Extension
+# TCWA3 Stats Tracker Server Extension
 
-Phase 0 proved the minimal server-side path between an Arma 3 Zeus module and the external Arma Attendance web API:
+Phase 0 proved the minimal server-side path between an Arma 3 Zeus module and the external TCWA3 Stats Tracker web API:
 
 ```text
 CBA addon -> Zeus debug module -> server SQF -> callExtension -> native extension -> HTTP API poke
@@ -15,18 +15,20 @@ The current sprint keeps that debug path intact while adding operation start/fin
 The client/server addon and server-only extension are packaged separately:
 
 ```text
-@arma_attendance/
+@tcwa3_stats_tracker/
   addons/
   keys/
   mod.cpp
   meta.cpp
 
-@arma_attendance_server/
+@tcwa3_stats_tracker_server/
   arma_attendance.so
   arma_attendance_x64.so
   arma_attendance_x64.dll
+  tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   README-server-install.md
+  README-workshop-server-extension.md
   README-server-install.txt
   checksums.sha256
 ```
@@ -34,10 +36,12 @@ The client/server addon and server-only extension are packaged separately:
 Recommended dedicated server launch shape:
 
 ```text
--mod=@CBA_A3;@arma_attendance -serverMod=@arma_attendance_server
+-mod=@CBA_A3;@tcwa3_stats_tracker -serverMod=@tcwa3_stats_tracker_server
 ```
 
-If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@arma_attendance_server`. Then run `ldd @arma_attendance_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
+This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names and docs now use `TCWA3 Stats Tracker`, while internal `AASE_fnc_*` functions and the native `arma_attendance` extension basename remain valid for existing missions and server launch scripts.
+
+If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@tcwa3_stats_tracker_server`. Then run `ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 
 ## Local Validation
 
@@ -51,13 +55,15 @@ hemtt build
 cmake -S extension -B build/extension-linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build/extension-linux --config RelWithDebInfo
 ctest --test-dir build/extension-linux --output-on-failure
+tools/assemble_workshop_server_extension.sh
+python3 tools/test_workshop_package_audit.py
 ```
 
-The native extension reads `arma_attendance.toml` beside the loaded extension binary, then applies environment variable overrides. Set `AASE_CONFIG_PATH` to an absolute TOML path if a server manager stores config outside `@arma_attendance_server`. Commit only `servermod/arma_attendance.example.toml`; keep real tokens and server config out of git.
+The native extension prefers `TCWA3_STATS_CONFIG_PATH`, then falls back to `AASE_CONFIG_PATH`, then looks for `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded extension binary. Real server config should live outside Workshop-managed folders, for example `/etc/tcwa3-stats-tracker/main.toml`. Commit only `servermod/*.example.toml`; keep real tokens, queue files, logs, and server config out of git and Workshop packages.
 
 ## CBA Automation Settings
 
-The addon registers server/global CBA settings under `Arma Attendance / Automation`.
+The addon registers server/global CBA settings under `TCWA3 Stats Tracker / Automation`.
 Automation is manual-only by default:
 
 ```sqf

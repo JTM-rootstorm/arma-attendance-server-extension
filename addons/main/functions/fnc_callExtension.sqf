@@ -26,7 +26,7 @@ private _result = "";
 
 if ([_result] call _isExtensionFailure) then {
     [
-        "Extension lookup failed. Verify @arma_attendance_server is loaded with -serverMod and contains arma_attendance.so/arma_attendance_x64.so on Linux or arma_attendance_x64.dll on Windows.",
+        "Extension lookup failed. Verify @tcwa3_stats_tracker_server is loaded with -serverMod and contains arma_attendance.so/arma_attendance_x64.so on Linux or arma_attendance_x64.dll on Windows.",
         "ERROR"
     ] call AASE_fnc_log;
 };
