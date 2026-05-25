@@ -113,8 +113,6 @@ int main(int argc, char** argv) {
         sent_path = executable_path.parent_path() / "arma_attendance_queue_test.sent.ndjson";
         std::filesystem::remove(queue_path);
         std::filesystem::remove(sent_path);
-        SetEnv("AASE_QUEUE_FILE", queue_path.string().c_str());
-        SetEnv("AASE_QUEUE_SENT_FILE", sent_path.string().c_str());
         std::ofstream config{config_path};
         config << "[server]\n"
                << "server_key = \"smoke-file-server\"\n"
@@ -123,7 +121,11 @@ int main(int argc, char** argv) {
                << "base_url = \"http://127.0.0.1:3000\"\n"
                << "api_token = \"dev-token\"\n"
                << "timeout_ms = 3000\n"
-               << "verify_tls = false\n";
+               << "verify_tls = false\n"
+               << "\n"
+               << "[queue]\n"
+               << "queue_file = \"arma_attendance_queue_test.ndjson\"\n"
+               << "queue_sent_file = \"arma_attendance_queue_test.sent.ndjson\"\n";
         SetEnv("TCWA3_STATS_CONFIG_PATH", config_path.string().c_str());
     }
 
@@ -248,6 +250,10 @@ int main(int argc, char** argv) {
     const auto queue_status = arma_attendance::ExecuteCommand("queue_status");
     ok = ExpectOk("queue_status", queue_status) && ok;
     ok = Contains(queue_status, "\"queued_count\":1") && ok;
+    if (!queue_path.empty() && !Contains(queue_status, queue_path.string())) {
+        std::cerr << "queue_status did not resolve queue beside extension: " << queue_status << '\n';
+        ok = false;
+    }
     if (!queue_path.empty()) {
         std::ifstream queue_file{queue_path};
         std::string queue_contents{

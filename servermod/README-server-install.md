@@ -13,13 +13,11 @@ Recommended launch flags:
 ## Config
 
 ```bash
-install -d -m 700 /etc/tcwa3-stats-tracker
-cp @tcwa3_stats_tracker_server/tcwa3_stats_tracker.example.toml /etc/tcwa3-stats-tracker/main.toml
-chmod 600 /etc/tcwa3-stats-tracker/main.toml
-export TCWA3_STATS_CONFIG_PATH=/etc/tcwa3-stats-tracker/main.toml
+cp @tcwa3_stats_tracker_server/tcwa3_stats_tracker.example.toml @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
+chmod 600 @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
 ```
 
-Edit the real config with the API base URL, API token, and server key. Keep this real config outside any Steam Workshop-managed folder so Workshop updates cannot overwrite it. `TCWA3_STATS_CONFIG_PATH` is preferred and checked before the backward-compatible `AASE_CONFIG_PATH`.
+Edit the real config with the API base URL, API token, and server key. The extension prefers `tcwa3_stats_tracker.toml` or `arma_attendance.toml` beside the loaded `.so`/`.dll`, because some hosts cannot read outside mod folders. `TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported as fallbacks for hosts that can safely read external paths.
 
 ## Linux Diagnostics
 
@@ -43,11 +41,11 @@ No `ldd` line should say `not found`.
 6. Check the server RPT for compact JSON responses.
 7. Check web API ingest/readback if available.
 
-Queue files should live outside the Workshop folder:
+Queue files default beside the loaded extension binary. Relative queue paths in TOML are resolved beside the `.so`/`.dll`:
 
 ```text
-/var/lib/tcwa3-stats-tracker/main/queue.ndjson
-/var/lib/tcwa3-stats-tracker/main/sent.ndjson
+@tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.ndjson
+@tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.sent.ndjson
 ```
 
 Queue files must not contain bearer tokens.

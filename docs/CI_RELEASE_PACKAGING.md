@@ -94,6 +94,6 @@ ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
 
-The extension prefers `TCWA3_STATS_CONFIG_PATH`, then `AASE_CONFIG_PATH`, then `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded extension. Real config should live outside Workshop-managed folders, such as `/etc/tcwa3-stats-tracker/main.toml`.
+The extension first looks for `tcwa3_stats_tracker.toml` or `arma_attendance.toml` beside the loaded `.so`/`.dll`. `TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported as fallbacks for hosts that can safely read external paths.
 
-Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the server process working directory unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Queue records store request bodies and metadata, never bearer tokens.
+Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the loaded extension binary unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Relative queue paths are resolved beside the loaded extension binary. Queue records store request bodies and metadata, never bearer tokens.

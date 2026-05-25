@@ -21,15 +21,16 @@ This folder is the server-only Workshop package for the native Arma extension. I
 
 The extension basename is `tcwa3_stats_tracker`. SQF calls the native binary with `"tcwa3_stats_tracker" callExtension [...]`, while addon helper functions use the `TCWA3_fnc_*` namespace. The `addons/` PBO is an inert Publisher marker so Arma 3 Publisher can upload this server-only Workshop item.
 
-## External Config
+## Config
 
-Do not place real config in this Workshop folder. Store one config per dedicated server outside Steam-managed content and point the extension at it:
+Copy the template beside the loaded extension binary and edit the real values there:
 
 ```bash
-export TCWA3_STATS_CONFIG_PATH="/etc/tcwa3-stats-tracker/main.toml"
+cp @tcwa3_stats_tracker_server/tcwa3_stats_tracker.example.toml @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
+chmod 600 @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
 ```
 
-`AASE_CONFIG_PATH` remains supported for older launch scripts. `TCWA3_STATS_CONFIG_PATH` wins when both are present.
+The extension checks `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded `.so`/`.dll` before external path environment variables. `TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported for older launch scripts when no mod-folder config is present.
 
 ## Package Safety
 
