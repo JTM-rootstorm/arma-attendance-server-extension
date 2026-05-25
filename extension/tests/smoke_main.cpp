@@ -86,6 +86,20 @@ std::string SqfStringLiteral(const std::string& value) {
     return encoded;
 }
 
+std::string JsonEscapedPath(const std::filesystem::path& path) {
+    std::string encoded;
+    for (const char ch : path.string()) {
+        if (ch == '\\') {
+            encoded += "\\\\";
+        } else if (ch == '"') {
+            encoded += "\\\"";
+        } else {
+            encoded.push_back(ch);
+        }
+    }
+    return encoded;
+}
+
 std::string ExecuteArgs(std::string_view command, const std::vector<std::string>& args) {
     std::vector<const char*> argv;
     argv.reserve(args.size());
@@ -250,7 +264,7 @@ int main(int argc, char** argv) {
     const auto queue_status = arma_attendance::ExecuteCommand("queue_status");
     ok = ExpectOk("queue_status", queue_status) && ok;
     ok = Contains(queue_status, "\"queued_count\":1") && ok;
-    if (!queue_path.empty() && !Contains(queue_status, queue_path.string())) {
+    if (!queue_path.empty() && !Contains(queue_status, JsonEscapedPath(queue_path))) {
         std::cerr << "queue_status did not resolve queue beside extension: " << queue_status << '\n';
         ok = false;
     }
