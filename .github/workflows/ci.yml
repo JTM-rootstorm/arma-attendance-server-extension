@@ -202,6 +202,9 @@ jobs:
           name: addon-hemtt-output
           path: artifacts/addon-hemtt
 
+      - name: Setup HEMTT
+        uses: arma-actions/hemtt@v1
+
       - name: Assemble preview
         run: |
           mkdir -p package/@tcwa3_stats_tracker/addons package/@tcwa3_stats_tracker/keys

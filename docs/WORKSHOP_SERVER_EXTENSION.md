@@ -13,8 +13,6 @@ TCWA3 Stats Tracker Server Extension
 Load the public addon with `-mod` and the server-only package with `-serverMod`:
 
 ```bash
-export TCWA3_STATS_CONFIG_PATH="/etc/tcwa3-stats-tracker/main.toml"
-
 ./arma3server_x64 \
   -mod=@CBA_A3\;@tcwa3_stats_tracker \
   -serverMod=@tcwa3_stats_tracker_server \
@@ -25,6 +23,9 @@ The server extension package uses the native binary basename `tcwa3_stats_tracke
 
 ```text
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll
@@ -37,30 +38,31 @@ The server extension package uses the native binary basename `tcwa3_stats_tracke
   checksums.sha256
 ```
 
+The `addons/` PBO is an inert Publisher marker so Arma 3 Publisher can upload the server-only Workshop item. Runtime behavior still comes from the native extension files and the public client/server addon.
+
 ## Config
 
-Real config must live outside Steam Workshop-managed folders so updates cannot overwrite server-specific secrets:
+The preferred deployment keeps the real config beside the loaded native extension, because some hosts cannot read outside their mod folders:
 
 ```bash
-install -d -m 700 /etc/tcwa3-stats-tracker
-cp @tcwa3_stats_tracker_server/tcwa3_stats_tracker.example.toml /etc/tcwa3-stats-tracker/main.toml
-chmod 600 /etc/tcwa3-stats-tracker/main.toml
+cp @tcwa3_stats_tracker_server/tcwa3_stats_tracker.example.toml @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
+chmod 600 @tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
 ```
 
 The native extension searches in this order:
 
 ```text
-TCWA3_STATS_CONFIG_PATH
-AASE_CONFIG_PATH
 tcwa3_stats_tracker.toml beside the loaded extension
 arma_attendance.toml beside the loaded extension
+TCWA3_STATS_CONFIG_PATH
+AASE_CONFIG_PATH
 ```
 
-`TCWA3_STATS_CONFIG_PATH` is preferred for new deployments. `AASE_CONFIG_PATH` remains supported for migration.
+`TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported for hosts that can safely read external paths, but the mod-folder config wins when present. Queue paths in TOML may be relative; relative queue paths are resolved beside the loaded `.so`/`.dll`.
 
 ## SteamCMD Multi-Server Updates
 
-Use one shared Workshop cache and per-server symlinks:
+Use one shared Workshop cache for downloads. The public addon can be symlinked, but the server extension folder should be copied or overlaid per server so each instance can keep its own writable config and queue files beside the native extension:
 
 ```text
 /srv/steamcmd/steamapps/workshop/content/107410/
@@ -69,21 +71,27 @@ Use one shared Workshop cache and per-server symlinks:
 
 /srv/arma3/instances/main/
   @tcwa3_stats_tracker -> /srv/steamcmd/steamapps/workshop/content/107410/<client_item_id>
-  @tcwa3_stats_tracker_server -> /srv/steamcmd/steamapps/workshop/content/107410/<server_extension_item_id>
+  @tcwa3_stats_tracker_server/
+    tcwa3_stats_tracker_x64.so
+    tcwa3_stats_tracker.toml
+    tcwa3_stats_tracker_queue.ndjson
   profiles/
 
 /srv/arma3/instances/training/
   @tcwa3_stats_tracker -> /srv/steamcmd/steamapps/workshop/content/107410/<client_item_id>
-  @tcwa3_stats_tracker_server -> /srv/steamcmd/steamapps/workshop/content/107410/<server_extension_item_id>
+  @tcwa3_stats_tracker_server/
+    tcwa3_stats_tracker_x64.so
+    tcwa3_stats_tracker.toml
+    tcwa3_stats_tracker_queue.ndjson
   profiles/
 ```
 
-Each server should use a unique external config and `server_key`:
+Each server should use a unique config and `server_key`. Prefer one copied config per server extension folder:
 
 ```text
-/etc/tcwa3-stats-tracker/main.toml
-/etc/tcwa3-stats-tracker/training.toml
-/etc/tcwa3-stats-tracker/events.toml
+/srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
+/srv/arma3/instances/training/@tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
+/srv/arma3/instances/events/@tcwa3_stats_tracker_server/tcwa3_stats_tracker.toml
 ```
 
 Example update flow:
@@ -96,7 +104,12 @@ steamcmd +force_install_dir /srv/steamcmd \
   +quit
 
 ln -sfn /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_CLIENT_ITEM_ID" /srv/arma3/instances/main/@tcwa3_stats_tracker
-ln -sfn /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_SERVER_EXTENSION_ITEM_ID" /srv/arma3/instances/main/@tcwa3_stats_tracker_server
+rsync -a --delete \
+  --exclude 'tcwa3_stats_tracker.toml' \
+  --exclude 'arma_attendance.toml' \
+  --exclude '*.ndjson' \
+  /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_SERVER_EXTENSION_ITEM_ID"/ \
+  /srv/arma3/instances/main/@tcwa3_stats_tracker_server/
 
 test -f /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ldd /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so

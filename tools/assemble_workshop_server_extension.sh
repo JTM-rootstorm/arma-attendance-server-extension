@@ -15,7 +15,13 @@ if [[ -z "$WIN_DLL" ]]; then
 fi
 
 rm -rf "$SERVERMOD"
-mkdir -p "$SERVERMOD"
+mkdir -p "$SERVERMOD/addons" "$SERVERMOD/keys"
+
+(
+  cd "$ROOT/servermod"
+  rm -rf .hemttout
+  hemtt release --no-archive
+)
 
 if [[ ! -f "$LINUX_SO" ]]; then
   echo "Missing Linux extension artifact: $LINUX_SO" >&2
@@ -29,6 +35,9 @@ fi
 
 cp "$LINUX_SO" "$SERVERMOD/"
 cp "$LINUX_X64_SO" "$SERVERMOD/"
+
+find "$ROOT/servermod/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
+find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 
 if [[ -n "$WIN_DLL" && -f "$WIN_DLL" ]]; then
   cp "$WIN_DLL" "$SERVERMOD/"

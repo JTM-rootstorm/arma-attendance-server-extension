@@ -29,7 +29,7 @@ tools/assemble_release.sh
 tools/assemble_workshop_server_extension.sh
 ```
 
-The full release script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies the freshly generated public `.bikey`, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
+The full release script runs `hemtt release --no-archive` for the client addon and server-extension Publisher marker addon, builds the Linux extension, copies freshly generated public `.bikey` files, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
 
 ## Trusted Signing
 
@@ -60,6 +60,9 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   meta.cpp
 
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll
@@ -71,7 +74,7 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   checksums.sha256
 ```
 
-The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
+The public addon may be loaded by clients and the server. The server extension package is dedicated-server only. Its small Publisher marker PBO exists so Arma 3 Publisher accepts the Workshop item; it does not contain runtime logic.
 The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace, SQF callExtension basename, and native binary basename. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
 
 ## Linux Load Diagnostics
@@ -91,6 +94,6 @@ ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
 
-The extension prefers `TCWA3_STATS_CONFIG_PATH`, then `AASE_CONFIG_PATH`, then `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded extension. Real config should live outside Workshop-managed folders, such as `/etc/tcwa3-stats-tracker/main.toml`.
+The extension first looks for `tcwa3_stats_tracker.toml` or `arma_attendance.toml` beside the loaded `.so`/`.dll`. `TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported as fallbacks for hosts that can safely read external paths.
 
-Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the server process working directory unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Queue records store request bodies and metadata, never bearer tokens.
+Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the loaded extension binary unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Relative queue paths are resolved beside the loaded extension binary. Queue records store request bodies and metadata, never bearer tokens.

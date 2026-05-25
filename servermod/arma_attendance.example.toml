@@ -1,5 +1,5 @@
 # TCWA3 Stats Tracker server extension config template.
-# Copy this file outside the Workshop folder before editing it.
+# Copy this file to arma_attendance.toml beside the server extension binary before editing it.
 # Never commit the real arma_attendance.toml.
 
 [server]
@@ -16,6 +16,6 @@ level = "info"
 
 [queue]
 enabled = true
-queue_file = "/var/lib/tcwa3-stats-tracker/main/queue.ndjson"
-queue_sent_file = "/var/lib/tcwa3-stats-tracker/main/sent.ndjson"
+queue_file = "arma_attendance_queue.ndjson"
+queue_sent_file = "arma_attendance_queue.sent.ndjson"
 max_attempts = 25

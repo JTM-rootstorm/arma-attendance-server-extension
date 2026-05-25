@@ -73,6 +73,14 @@ std::filesystem::path ExtensionModulePath() {
 #endif
 }
 
+std::optional<std::filesystem::path> ExtensionModuleDirectory() {
+    const auto module_path = ExtensionModulePath();
+    if (module_path.empty() || !module_path.has_parent_path()) {
+        return std::nullopt;
+    }
+    return std::filesystem::absolute(module_path).parent_path();
+}
+
 std::optional<bool> ParseBool(std::string value) {
     std::ranges::transform(value, value.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
     if (value == "true" || value == "1" || value == "yes") {
@@ -184,6 +192,18 @@ void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
 }
 
 std::filesystem::path ConfigPath() {
+    if (const auto directory = ExtensionModuleDirectory()) {
+        const auto tcwa3_path = *directory / "tcwa3_stats_tracker.toml";
+        if (std::filesystem::exists(tcwa3_path)) {
+            return tcwa3_path;
+        }
+
+        const auto legacy_path = *directory / "arma_attendance.toml";
+        if (std::filesystem::exists(legacy_path)) {
+            return legacy_path;
+        }
+    }
+
     if (auto value = GetEnv("TCWA3_STATS_CONFIG_PATH")) {
         return std::filesystem::path{*value};
     }
@@ -192,14 +212,8 @@ std::filesystem::path ConfigPath() {
         return std::filesystem::path{*value};
     }
 
-    const auto module_path = ExtensionModulePath();
-    if (!module_path.empty() && module_path.has_parent_path()) {
-        const auto directory = module_path.parent_path();
-        const auto tcwa3_path = directory / "tcwa3_stats_tracker.toml";
-        if (std::filesystem::exists(tcwa3_path)) {
-            return tcwa3_path;
-        }
-        return directory / "arma_attendance.toml";
+    if (const auto directory = ExtensionModuleDirectory()) {
+        return *directory / "tcwa3_stats_tracker.toml";
     }
 
     const auto current_tcwa3_path = std::filesystem::current_path() / "tcwa3_stats_tracker.toml";
@@ -207,6 +221,29 @@ std::filesystem::path ConfigPath() {
         return current_tcwa3_path;
     }
     return std::filesystem::current_path() / "arma_attendance.toml";
+}
+
+std::filesystem::path QueueBaseDirectory(const std::filesystem::path& source_path) {
+    if (const auto directory = ExtensionModuleDirectory()) {
+        return *directory;
+    }
+    if (!source_path.empty() && source_path.has_parent_path()) {
+        return source_path.parent_path();
+    }
+    return std::filesystem::current_path();
+}
+
+std::filesystem::path ResolveRuntimePath(const std::filesystem::path& path, const std::filesystem::path& base) {
+    if (path.empty() || path.is_absolute()) {
+        return path;
+    }
+    return base / path;
+}
+
+void ResolveRuntimePaths(Config& config) {
+    const auto base = QueueBaseDirectory(config.source_path);
+    config.queue_file = ResolveRuntimePath(config.queue_file, base);
+    config.queue_sent_file = ResolveRuntimePath(config.queue_sent_file, base);
 }
 
 std::string TokenPreview(const std::string& token) {
@@ -229,6 +266,7 @@ ConfigLoadResult LoadConfig() {
         config.source_path = path;
     }
     ApplyEnv(config);
+    ResolveRuntimePaths(config);
 
     if (config.base_url.ends_with('/')) {
         config.base_url.pop_back();

@@ -23,6 +23,9 @@ The client/server addon and server-only extension are packaged separately:
   meta.cpp
 
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll
@@ -60,7 +63,7 @@ tools/assemble_workshop_server_extension.sh
 python3 tools/test_workshop_package_audit.py
 ```
 
-The native extension prefers `TCWA3_STATS_CONFIG_PATH`, then falls back to `AASE_CONFIG_PATH`, then looks for `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded extension binary. Real server config should live outside Workshop-managed folders, for example `/etc/tcwa3-stats-tracker/main.toml`. Commit only `servermod/*.example.toml`; keep real tokens, queue files, logs, and server config out of git and Workshop packages.
+The native extension first looks for `tcwa3_stats_tracker.toml` or `arma_attendance.toml` beside the loaded `.so`/`.dll`. `TCWA3_STATS_CONFIG_PATH` and `AASE_CONFIG_PATH` remain supported as fallbacks for hosts that can safely read external paths. Relative queue paths are resolved beside the loaded extension binary so config and queue state can stay inside the server mod folder. Commit only `servermod/*.example.toml`; keep real tokens, queue files, logs, and server config out of git and source archives.
 
 ## CBA Automation Settings
 

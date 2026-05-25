@@ -65,6 +65,10 @@ def read_text(path: Path) -> str:
 
 def audit(root: Path) -> list[str]:
     findings: list[str] = []
+    addon_files = sorted((root / "addons").glob("*.pbo")) if (root / "addons").is_dir() else []
+    if not addon_files:
+        findings.append("addons/: missing Publisher marker PBO")
+
     for path in sorted(item for item in root.rglob("*") if item.is_file()):
         relative = path.relative_to(root)
         if reason := is_forbidden_file(path):

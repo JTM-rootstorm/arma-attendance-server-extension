@@ -136,6 +136,9 @@ jobs:
           name: tcwa3-stats-tracker-extension-windows-x64
           path: artifacts/windows
 
+      - name: Setup HEMTT
+        uses: arma-actions/hemtt@v1
+
       - name: Assemble server extension package
         run: tools/assemble_workshop_server_extension.sh
 
