@@ -6,12 +6,12 @@ BUILD_DIR="${AASE_EXTENSION_BUILD_DIR:-${ROOT}/build/extension-linux}"
 OUT_ROOT="${TCWA3_SERVER_WORKSHOP_OUT:-${ROOT}/dist/workshop-server-extension}"
 SERVERMOD="${OUT_ROOT}/@tcwa3_stats_tracker_server"
 
-LINUX_SO="${TCWA3_LINUX_SO:-${BUILD_DIR}/arma_attendance.so}"
-LINUX_X64_SO="${TCWA3_LINUX_X64_SO:-${BUILD_DIR}/arma_attendance_x64.so}"
+LINUX_SO="${TCWA3_LINUX_SO:-${BUILD_DIR}/tcwa3_stats_tracker.so}"
+LINUX_X64_SO="${TCWA3_LINUX_X64_SO:-${BUILD_DIR}/tcwa3_stats_tracker_x64.so}"
 WIN_DLL="${TCWA3_WIN_DLL:-}"
 
 if [[ -z "$WIN_DLL" ]]; then
-  WIN_DLL="$(find "$ROOT/build" "$ROOT/artifacts" -name 'arma_attendance_x64.dll' -print -quit 2>/dev/null || true)"
+  WIN_DLL="$(find "$ROOT/build" "$ROOT/artifacts" -name 'tcwa3_stats_tracker_x64.dll' -print -quit 2>/dev/null || true)"
 fi
 
 rm -rf "$SERVERMOD"

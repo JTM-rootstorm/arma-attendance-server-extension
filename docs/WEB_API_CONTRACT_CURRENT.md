@@ -89,7 +89,7 @@ Recommended extension payload:
     "entrypoint": "zeus_module",
     "entrypoint_detail": "Stats: Start Operation",
     "addon": "tcwa3_stats_tracker",
-    "extension": "arma_attendance",
+    "extension": "tcwa3_stats_tracker",
     "automation": false
   },
   "players": []
@@ -147,7 +147,7 @@ Recommended extension payload:
     "entrypoint": "zeus_module",
     "entrypoint_detail": "Stats: Finish Operation",
     "addon": "tcwa3_stats_tracker",
-    "extension": "arma_attendance",
+    "extension": "tcwa3_stats_tracker",
     "automation": false,
     "stats_source": "arma_getPlayerScores_delta"
   },

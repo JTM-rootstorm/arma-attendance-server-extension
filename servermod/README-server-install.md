@@ -2,7 +2,7 @@
 
 Copy `@tcwa3_stats_tracker` to clients and the dedicated server. Copy `@tcwa3_stats_tracker_server` to the dedicated server only.
 
-This is the compatibility release for the old `Arma Attendance` naming. The public folders and Workshop metadata are now TCWA3-facing, but the native extension files remain named `arma_attendance.*` so existing SQF `callExtension` calls continue to work.
+This release uses the TCWA3 naming scheme for public folders, Workshop metadata, SQF functions, and native extension files.
 
 Recommended launch flags:
 
@@ -26,9 +26,9 @@ Edit the real config with the API base URL, API token, and server key. Keep this
 Run these in the same Linux container or host that runs `arma3server_x64`:
 
 ```bash
-file @tcwa3_stats_tracker_server/arma_attendance.so
-ldd @tcwa3_stats_tracker_server/arma_attendance.so
-ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so
+file @tcwa3_stats_tracker_server/tcwa3_stats_tracker.so
+ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker.so
+ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ```
 
 No `ldd` line should say `not found`.

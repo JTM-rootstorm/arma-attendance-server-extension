@@ -23,9 +23,9 @@ The client/server addon and server-only extension are packaged separately:
   meta.cpp
 
 @tcwa3_stats_tracker_server/
-  arma_attendance.so
-  arma_attendance_x64.so
-  arma_attendance_x64.dll
+  tcwa3_stats_tracker.so
+  tcwa3_stats_tracker_x64.so
+  tcwa3_stats_tracker_x64.dll
   tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   README-server-install.md
@@ -40,9 +40,9 @@ Recommended dedicated server launch shape:
 -mod=@CBA_A3;@tcwa3_stats_tracker -serverMod=@tcwa3_stats_tracker_server
 ```
 
-This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names, client addon PBOs, docs, and SQF functions now use `TCWA3 Stats Tracker` / `TCWA3_fnc_*`, while the native `arma_attendance` extension basename remains valid for existing server launch scripts.
+This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names, client addon PBOs, SQF functions, and native extension binaries now use `TCWA3 Stats Tracker` / `tcwa3_stats_tracker` naming.
 
-If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@tcwa3_stats_tracker_server`. Then run `ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
+If the RPT says `Call extension 'tcwa3_stats_tracker' could not be loaded`, verify that both `tcwa3_stats_tracker.so` and `tcwa3_stats_tracker_x64.so` are present in `@tcwa3_stats_tracker_server`. Then run `ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 
 ## Local Validation
 

@@ -3,8 +3,8 @@
 Phase 0 CI proves three things without private key material:
 
 - HEMTT can check and build the addon skeleton.
-- Linux produces `arma_attendance.so` and `arma_attendance_x64.so`.
-- Windows produces `arma_attendance_x64.dll`.
+- Linux produces `tcwa3_stats_tracker.so` and `tcwa3_stats_tracker_x64.so`.
+- Windows produces `tcwa3_stats_tracker_x64.dll`.
 - Payload examples and static one-shot Zeus module cleanup checks pass.
 - Linux artifacts do not depend on server-provided `libcurl`, `libstdc++`, or `libgcc_s`.
 - Linux artifacts are built in an Ubuntu 20.04 container and audited to avoid requiring GLIBC newer than 2.31.
@@ -29,7 +29,7 @@ tools/assemble_release.sh
 tools/assemble_workshop_server_extension.sh
 ```
 
-The full release script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies generated/public `.bikey` files when present, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
+The full release script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies the freshly generated public `.bikey`, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
 
 ## Trusted Signing
 
@@ -60,9 +60,9 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   meta.cpp
 
 @tcwa3_stats_tracker_server/
-  arma_attendance.so
-  arma_attendance_x64.so
-  arma_attendance_x64.dll
+  tcwa3_stats_tracker.so
+  tcwa3_stats_tracker_x64.so
+  tcwa3_stats_tracker_x64.dll
   tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   README-server-install.md
@@ -72,21 +72,21 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 ```
 
 The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
-The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace and keeps the native `arma_attendance` binary basename for this transition release so existing SQF calls and mission functions remain compatible. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
+The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace, SQF callExtension basename, and native binary basename. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
 
 ## Linux Load Diagnostics
 
-If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. First verify `@tcwa3_stats_tracker_server` contains both Linux names:
+If Arma logs `Call extension 'tcwa3_stats_tracker' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. First verify `@tcwa3_stats_tracker_server` contains both Linux names:
 
 ```bash
-ls -l @tcwa3_stats_tracker_server/arma_attendance.so @tcwa3_stats_tracker_server/arma_attendance_x64.so
+ls -l @tcwa3_stats_tracker_server/tcwa3_stats_tracker.so @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ```
 
 Then, in the same container or host that runs `arma3server_x64`, run:
 
 ```bash
-file @tcwa3_stats_tracker_server/arma_attendance_x64.so
-ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so
+file @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
+ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ```
 
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
