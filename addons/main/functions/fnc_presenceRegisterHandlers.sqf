@@ -20,10 +20,10 @@ private _connectedId = addMissionEventHandler ["PlayerConnected", {
             if ((getPlayerUID _x) isEqualTo _uid) exitWith {
                 _unit = _x;
             };
-        } forEach ([] call AASE_fnc_activePlayerUnits);
+        } forEach ([] call TCWA3_fnc_activePlayerUnits);
 
         if (isNull _unit) exitWith {};
-        [_unit, false] call AASE_fnc_markPlayerPresentFromUnit;
+        [_unit, false] call TCWA3_fnc_markPlayerPresentFromUnit;
     };
 }];
 
@@ -39,16 +39,16 @@ private _disconnectedId = addMissionEventHandler ["PlayerDisconnected", {
             _unit = _x;
         };
     } forEach allPlayers;
-    if (!isNull _unit && {[_unit] call AASE_fnc_isHeadlessClient}) exitWith {};
+    if (!isNull _unit && {[_unit] call TCWA3_fnc_isHeadlessClient}) exitWith {};
 
     private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
     if ((isNull _unit) && {!(_uid in _ledger)}) exitWith {};
 
     if (!isNull _unit) then {
-        [_unit] call AASE_fnc_scoreCaptureUnit;
+        [_unit] call TCWA3_fnc_scoreCaptureUnit;
     };
 
-    [_uid, _name, "disconnect"] call AASE_fnc_markPlayerAbsent;
+    [_uid, _name, "disconnect"] call TCWA3_fnc_markPlayerAbsent;
 }];
 
 private _entityKilledId = addMissionEventHandler ["EntityKilled", {
@@ -59,10 +59,10 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
     if (!(missionNamespace getVariable ["AASE_enableExperimentalKillLedger", false])) exitWith {};
     if (isNull _killed) exitWith {};
 
-    if (isPlayer _killed && {!([_killed] call AASE_fnc_isHeadlessClient)}) then {
+    if (isPlayer _killed && {!([_killed] call TCWA3_fnc_isHeadlessClient)}) then {
         private _killedUid = getPlayerUID _killed;
         if (_killedUid isNotEqualTo "") then {
-            [_killedUid, name _killed, "deaths"] call AASE_fnc_incrementPresenceStat;
+            [_killedUid, name _killed, "deaths"] call TCWA3_fnc_incrementPresenceStat;
         };
     };
 
@@ -71,30 +71,30 @@ private _entityKilledId = addMissionEventHandler ["EntityKilled", {
         _killerUnit = _killer;
     };
     if (isNull _killerUnit) exitWith {};
-    if ([_killerUnit] call AASE_fnc_isHeadlessClient) exitWith {};
+    if ([_killerUnit] call TCWA3_fnc_isHeadlessClient) exitWith {};
     if (!isPlayer _killerUnit) exitWith {};
     if (_killerUnit isEqualTo _killed) exitWith {};
 
     private _killerUid = getPlayerUID _killerUnit;
     if (_killerUid isEqualTo "") exitWith {};
 
-    [_killerUnit, false] call AASE_fnc_markPlayerPresentFromUnit;
+    [_killerUnit, false] call TCWA3_fnc_markPlayerPresentFromUnit;
 
-    if (isPlayer _killed && {!([_killed] call AASE_fnc_isHeadlessClient)}) then {
-        [_killerUid, name _killerUnit, "player_kills"] call AASE_fnc_incrementPresenceStat;
+    if (isPlayer _killed && {!([_killed] call TCWA3_fnc_isHeadlessClient)}) then {
+        [_killerUid, name _killerUnit, "player_kills"] call TCWA3_fnc_incrementPresenceStat;
     } else {
         if (_killed isKindOf "Man") then {
-            [_killerUid, name _killerUnit, "infantry_kills"] call AASE_fnc_incrementPresenceStat;
-            [_killerUid, name _killerUnit, "ai_kills"] call AASE_fnc_incrementPresenceStat;
+            [_killerUid, name _killerUnit, "infantry_kills"] call TCWA3_fnc_incrementPresenceStat;
+            [_killerUid, name _killerUnit, "ai_kills"] call TCWA3_fnc_incrementPresenceStat;
         } else {
             if ((_killed isKindOf "LandVehicle") || {_killed isKindOf "Air"} || {_killed isKindOf "Ship"}) then {
-                [_killerUid, name _killerUnit, "vehicle_kills"] call AASE_fnc_incrementPresenceStat;
+                [_killerUid, name _killerUnit, "vehicle_kills"] call TCWA3_fnc_incrementPresenceStat;
             };
         };
     };
 
     if ((side (group _killerUnit)) isEqualTo (side (group _killed))) then {
-        [_killerUid, name _killerUnit, "friendly_kills"] call AASE_fnc_incrementPresenceStat;
+        [_killerUid, name _killerUnit, "friendly_kills"] call TCWA3_fnc_incrementPresenceStat;
     };
 }];
 

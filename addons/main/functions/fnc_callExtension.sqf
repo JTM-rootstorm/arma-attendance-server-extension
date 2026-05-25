@@ -19,7 +19,7 @@ private _result = "";
 {
     _result = _x callExtension [_command, _args];
 
-    [format ["callExtension extension=%1 command=%2 result=%3", _x, _command, _result], "DEBUG"] call AASE_fnc_log;
+    [format ["callExtension extension=%1 command=%2 result=%3", _x, _command, _result], "DEBUG"] call TCWA3_fnc_log;
 
     if (!([_result] call _isExtensionFailure)) exitWith {};
 } forEach _extensionNames;
@@ -28,7 +28,7 @@ if ([_result] call _isExtensionFailure) then {
     [
         "Extension lookup failed. Verify @tcwa3_stats_tracker_server is loaded with -serverMod and contains arma_attendance.so/arma_attendance_x64.so on Linux or arma_attendance_x64.dll on Windows.",
         "ERROR"
-    ] call AASE_fnc_log;
+    ] call TCWA3_fnc_log;
 };
 
 if (_result isEqualType [] && {count _result > 0}) exitWith {

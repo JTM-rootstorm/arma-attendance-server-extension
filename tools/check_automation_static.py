@@ -103,14 +103,14 @@ def validate_automation_calls(root: Path) -> bool:
     source_text = read(funcs / "fnc_buildOperationSource.sqf")
     ok = True
 
-    for needle in ("AASE_fnc_operationStart", "AASE_fnc_operationFinish", "triggerActivated"):
+    for needle in ("TCWA3_fnc_operationStart", "TCWA3_fnc_operationFinish", "triggerActivated"):
         if needle not in trigger_text:
             ok = bad(f"Trigger watcher missing {needle}") and ok
     if re.search(r"\bcreate(Vehicle|Unit)\b", trigger_text):
         ok = bad("Trigger watcher must not spawn modules or objects") and ok
-    if "AASE_fnc_operationStart" not in delayed_text or "delayed_auto_start" not in delayed_text:
+    if "TCWA3_fnc_operationStart" not in delayed_text or "delayed_auto_start" not in delayed_text:
         ok = bad("Delayed auto-start must call operationStart with delayed_auto_start source") and ok
-    if "AASE_fnc_operationFinish" not in fallback_text or "mission_end_fallback" not in fallback_text:
+    if "TCWA3_fnc_operationFinish" not in fallback_text or "mission_end_fallback" not in fallback_text:
         ok = bad("Mission-end fallback must call operationFinish with mission_end_fallback source") and ok
     for source_kind in ("zeus_module", "named_trigger", "delayed_auto_start", "mission_end_fallback"):
         if source_kind not in source_text:
@@ -126,7 +126,7 @@ def validate_modules(root: Path) -> bool:
     ok = True
     for path in funcs.glob("fnc_module*.sqf"):
         text = read(path)
-        if "AASE_fnc_deleteModuleLogic" not in text and "deleteVehicle" not in text:
+        if "TCWA3_fnc_deleteModuleLogic" not in text and "deleteVehicle" not in text:
             ok = bad(f"Module wrapper may not delete logic object: {path}") and ok
     if ok:
         print("[OK] module wrappers clean up logic objects")

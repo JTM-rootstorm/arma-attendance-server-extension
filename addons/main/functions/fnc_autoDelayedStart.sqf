@@ -24,23 +24,23 @@ _handle = [] spawn {
         "Delayed auto-start waiting: delaySeconds=%1 minPlayers=%2",
         _delaySeconds,
         _minPlayers
-    ], "INFO"] call AASE_fnc_log;
+    ], "INFO"] call TCWA3_fnc_log;
 
     sleep _delaySeconds;
 
     waitUntil {
         private _operationActive = missionNamespace getVariable ["AASE_operationActive", false];
-        private _playersReady = (count ([] call AASE_fnc_activePlayerUnits)) >= _minPlayers;
+        private _playersReady = (count ([] call TCWA3_fnc_activePlayerUnits)) >= _minPlayers;
         _operationActive || {_playersReady}
     };
 
     if (missionNamespace getVariable ["AASE_operationActive", false]) exitWith {
         missionNamespace setVariable ["AASE_autoDelayedStartFired", true, false];
         missionNamespace setVariable ["AASE_autoDelayedStartRunning", false, false];
-        ["Delayed auto-start skipped because an operation is already active.", "INFO"] call AASE_fnc_log;
+        ["Delayed auto-start skipped because an operation is already active.", "INFO"] call TCWA3_fnc_log;
     };
 
-    private _playerCount = count ([] call AASE_fnc_activePlayerUnits);
+    private _playerCount = count ([] call TCWA3_fnc_activePlayerUnits);
     missionNamespace setVariable ["AASE_autoDelayedStartFired", true, false];
     missionNamespace setVariable ["AASE_autoDelayedStartRunning", false, false];
 
@@ -52,7 +52,7 @@ _handle = [] spawn {
             ["min_players", _minPlayers],
             ["player_count", _playerCount]
         ]
-    ] call AASE_fnc_operationStart;
+    ] call TCWA3_fnc_operationStart;
 };
 
 missionNamespace setVariable ["AASE_autoDelayedStartHandle", _handle, false];

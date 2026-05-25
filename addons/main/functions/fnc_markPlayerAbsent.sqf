@@ -3,7 +3,7 @@ params ["_uid", ["_name", ""], ["_reason", "disconnect"]];
 if (!isServer) exitWith {};
 if (_uid isEqualTo "") exitWith {};
 
-_name = [_name] call AASE_fnc_sanitizePlayerName;
+_name = [_name] call TCWA3_fnc_sanitizePlayerName;
 private _now = serverTime;
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 private _record = _ledger getOrDefault [_uid, createHashMap];

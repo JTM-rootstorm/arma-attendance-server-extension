@@ -13,12 +13,12 @@ MODULES = (
 def validate_module_cleanup(root, relative):
     path = root / relative
     text = path.read_text(encoding="utf-8")
-    helper_cleanup = "AASE_fnc_deleteModuleLogic" in text
+    helper_cleanup = "TCWA3_fnc_deleteModuleLogic" in text
     checks = {
         "cleanup helper": helper_cleanup or "private _cleanup" in text,
         "delete logic": helper_cleanup or "deleteVehicle _moduleLogic" in text,
         "non-server cleanup": "if (!isServer) exitWith" in text and (helper_cleanup or "[_logic] call _cleanup" in text),
-        "inactive cleanup": "if (!_activated) exitWith" in text and (text.count("AASE_fnc_deleteModuleLogic") >= 3 or text.count("[_logic] call _cleanup") >= 3),
+        "inactive cleanup": "if (!_activated) exitWith" in text and (text.count("TCWA3_fnc_deleteModuleLogic") >= 3 or text.count("[_logic] call _cleanup") >= 3),
         "result return": text.rstrip().endswith("_result"),
     }
     ok = True
@@ -49,10 +49,10 @@ def validate_operation_json(root):
             ("callExtension tuple unwrap", "_result select 0"),
         ],
         "addons/main/functions/fnc_operationStart.sqf": [
-            ("operation start uses local JSON encoder", "AASE_fnc_encodeJson"),
+            ("operation start uses local JSON encoder", "TCWA3_fnc_encodeJson"),
         ],
         "addons/main/functions/fnc_operationFinish.sqf": [
-            ("operation finish uses local JSON encoder", "AASE_fnc_encodeJson"),
+            ("operation finish uses local JSON encoder", "TCWA3_fnc_encodeJson"),
         ],
     }
     forbidden = {
@@ -97,25 +97,25 @@ def validate_player_name_sanitizer(root):
             ("fallback handling", "_fallback"),
         ],
         "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
-            ("snapshot name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("snapshot name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
-            ("presence name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("presence name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
-            ("score capture name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("score capture name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markPlayerAbsent.sqf": [
-            ("absence name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("absence name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markUidPresentPending.sqf": [
-            ("pending reconnect name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("pending reconnect name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_incrementPresenceStat.sqf": [
-            ("stat name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("stat name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
-            ("attendance record name sanitization", "AASE_fnc_sanitizePlayerName"),
+            ("attendance record name sanitization", "TCWA3_fnc_sanitizePlayerName"),
         ],
     }
     forbidden = {
@@ -166,32 +166,32 @@ def validate_headless_client_filter(root):
             ("allPlayers HC subtraction", 'allPlayers - (entities "HeadlessClient_F")'),
         ],
         "addons/main/functions/fnc_buildPlayersSnapshot.sqf": [
-            ("snapshot loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+            ("snapshot loop uses active player filter", "TCWA3_fnc_activePlayerUnits"),
         ],
         "addons/main/functions/fnc_scoreCaptureCurrentPlayers.sqf": [
-            ("score loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+            ("score loop uses active player filter", "TCWA3_fnc_activePlayerUnits"),
         ],
         "addons/main/functions/fnc_presenceInit.sqf": [
-            ("init loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+            ("init loop uses active player filter", "TCWA3_fnc_activePlayerUnits"),
         ],
         "addons/main/functions/fnc_presenceStartLoop.sqf": [
-            ("reconcile loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+            ("reconcile loop uses active player filter", "TCWA3_fnc_activePlayerUnits"),
         ],
         "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
-            ("finish loop uses active player filter", "AASE_fnc_activePlayerUnits"),
+            ("finish loop uses active player filter", "TCWA3_fnc_activePlayerUnits"),
         ],
         "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
-            ("snapshot rejects HC unit", "AASE_fnc_isHeadlessClient"),
+            ("snapshot rejects HC unit", "TCWA3_fnc_isHeadlessClient"),
         ],
         "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
-            ("presence rejects HC unit", "AASE_fnc_isHeadlessClient"),
+            ("presence rejects HC unit", "TCWA3_fnc_isHeadlessClient"),
         ],
         "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
-            ("score capture rejects HC unit", "AASE_fnc_isHeadlessClient"),
+            ("score capture rejects HC unit", "TCWA3_fnc_isHeadlessClient"),
         ],
         "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
-            ("connect resolves active player unit", "AASE_fnc_activePlayerUnits"),
-            ("disconnect skips HC unit", "AASE_fnc_isHeadlessClient"),
+            ("connect resolves active player unit", "TCWA3_fnc_activePlayerUnits"),
+            ("disconnect skips HC unit", "TCWA3_fnc_isHeadlessClient"),
             ("disconnect skips unknown UID", "!(_uid in _ledger)"),
         ],
     }
@@ -212,7 +212,7 @@ def validate_headless_client_filter(root):
             ("finish loop must not iterate raw allPlayers", "forEach allPlayers"),
         ],
         "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
-            ("connect must not mark pending UID without unit classification", "AASE_fnc_markUidPresentPending"),
+            ("connect must not mark pending UID without unit classification", "TCWA3_fnc_markUidPresentPending"),
         ],
     }
 
@@ -257,27 +257,27 @@ def validate_scoreboard_stats(root):
             ("stats source", "arma_getPlayerScores_delta"),
         ],
         "addons/main/functions/fnc_presenceInit.sqf": [
-            ("score init", "AASE_fnc_scoreInit"),
-            ("initial capture", "AASE_fnc_scoreCaptureCurrentPlayers"),
+            ("score init", "TCWA3_fnc_scoreInit"),
+            ("initial capture", "TCWA3_fnc_scoreCaptureCurrentPlayers"),
         ],
         "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
-            ("late join capture", "AASE_fnc_scoreCaptureUnit"),
+            ("late join capture", "TCWA3_fnc_scoreCaptureUnit"),
         ],
         "addons/main/functions/fnc_presenceStartLoop.sqf": [
-            ("loop capture", "AASE_fnc_scoreCaptureUnit"),
+            ("loop capture", "TCWA3_fnc_scoreCaptureUnit"),
         ],
         "addons/main/functions/fnc_presenceRegisterHandlers.sqf": [
-            ("disconnect capture attempt", "AASE_fnc_scoreCaptureUnit"),
+            ("disconnect capture attempt", "TCWA3_fnc_scoreCaptureUnit"),
             ("experimental kill ledger disabled by default", "AASE_enableExperimentalKillLedger"),
         ],
         "addons/main/functions/fnc_presenceFinalizeForEnd.sqf": [
-            ("finish capture", "AASE_fnc_scoreCaptureCurrentPlayers"),
+            ("finish capture", "TCWA3_fnc_scoreCaptureCurrentPlayers"),
         ],
         "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
-            ("finish-present stat attach", "AASE_fnc_scoreAttachStats"),
+            ("finish-present stat attach", "TCWA3_fnc_scoreAttachStats"),
         ],
         "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
-            ("attendance stat attach", "AASE_fnc_scoreAttachStats"),
+            ("attendance stat attach", "TCWA3_fnc_scoreAttachStats"),
         ],
     }
 

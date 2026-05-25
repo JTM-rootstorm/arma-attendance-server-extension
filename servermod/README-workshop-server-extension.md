@@ -16,7 +16,7 @@ This folder is the server-only Workshop package for the native Arma extension. I
   checksums.sha256
 ```
 
-The extension basename remains `arma_attendance` for this transition release. Existing SQF calls such as `"arma_attendance" callExtension [...]` and `AASE_fnc_operationStart` remain valid.
+The extension basename remains `arma_attendance` for this transition release. SQF still calls the native binary with `"arma_attendance" callExtension [...]`, while addon helper functions use the `TCWA3_fnc_*` namespace.
 
 ## External Config
 

@@ -5,15 +5,15 @@ private _autoFinishMode = missionNamespace getVariable ["AASE_autoFinishMode", 0
 private _missionEndFallback = missionNamespace getVariable ["AASE_enableMissionEndFallback", false];
 
 if (_autoStartMode isEqualTo 1 || {_autoFinishMode isEqualTo 1}) then {
-    [] call AASE_fnc_autoTriggerWatcher;
+    [] call TCWA3_fnc_autoTriggerWatcher;
 };
 
 if (_autoStartMode isEqualTo 2) then {
-    [] call AASE_fnc_autoDelayedStart;
+    [] call TCWA3_fnc_autoDelayedStart;
 };
 
 if (_missionEndFallback) then {
-    [] call AASE_fnc_autoMissionEndFallback;
+    [] call TCWA3_fnc_autoMissionEndFallback;
 };
 
 [
@@ -24,4 +24,4 @@ if (_missionEndFallback) then {
         _missionEndFallback
     ],
     "INFO"
-] call AASE_fnc_log;
+] call TCWA3_fnc_log;

@@ -43,14 +43,14 @@ switch (typeName _value) do {
         str _value
     };
     case "ARRAY": {
-        private _items = _value apply { [_x] call AASE_fnc_encodeJson };
+        private _items = _value apply { [_x] call TCWA3_fnc_encodeJson };
         "[" + (_items joinString ",") + "]"
     };
     case "HASHMAP": {
         private _pairs = [];
         {
             private _key = if (_x isEqualType "") then { _x } else { str _x };
-            _pairs pushBack (([_key] call _escapeString) + ":" + ([_y] call AASE_fnc_encodeJson));
+            _pairs pushBack (([_key] call _escapeString) + ":" + ([_y] call TCWA3_fnc_encodeJson));
         } forEach _value;
 
         "{" + (_pairs joinString ",") + "}"

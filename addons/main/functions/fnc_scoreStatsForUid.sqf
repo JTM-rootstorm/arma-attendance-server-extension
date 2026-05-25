@@ -1,3 +1,3 @@
 params ["_uid"];
 
-[_uid] call AASE_fnc_scoreDelta
+[_uid] call TCWA3_fnc_scoreDelta

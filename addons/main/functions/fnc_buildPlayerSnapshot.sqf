@@ -1,11 +1,11 @@
 params ["_unit", ["_includeStats", false]];
 
-if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {createHashMap};
+if ([_unit] call TCWA3_fnc_isHeadlessClient) exitWith {createHashMap};
 
 private _uid = getPlayerUID _unit;
 if (_uid isEqualTo "") exitWith {createHashMap};
 
-private _playerName = [name _unit, "Unknown Player"] call AASE_fnc_sanitizePlayerName;
+private _playerName = [name _unit, "Unknown Player"] call TCWA3_fnc_sanitizePlayerName;
 private _vehicle = vehicle _unit;
 private _vehicleClass = "";
 if (_vehicle isNotEqualTo _unit) then {
@@ -28,7 +28,7 @@ private _snapshot = createHashMapFromArray [
 ];
 
 if (_includeStats) then {
-    [_snapshot, _uid] call AASE_fnc_scoreAttachStats;
+    [_snapshot, _uid] call TCWA3_fnc_scoreAttachStats;
 } else {
     private _baselineByUid = missionNamespace getVariable ["AASE_scoreBaselineByUid", createHashMap];
     private _baseline = _baselineByUid getOrDefault [_uid, createHashMap];

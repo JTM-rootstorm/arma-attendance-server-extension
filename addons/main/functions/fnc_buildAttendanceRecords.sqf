@@ -15,7 +15,7 @@ private _records = [];
 
 {
     private _record = _y;
-    private _playerName = [_record getOrDefault ["name", ""], "Unknown Player"] call AASE_fnc_sanitizePlayerName;
+    private _playerName = [_record getOrDefault ["name", ""], "Unknown Player"] call TCWA3_fnc_sanitizePlayerName;
     private _attendedSeconds = _record getOrDefault ["attended_seconds", 0];
     if ((_record getOrDefault ["state", "unknown"]) isEqualTo "present") then {
         private _activeSince = _record getOrDefault ["active_since", _endedAt];
@@ -91,7 +91,7 @@ private _records = [];
         ]]]
     ];
 
-    [_attendanceRecord, _record getOrDefault ["uid", _x]] call AASE_fnc_scoreAttachStats;
+    [_attendanceRecord, _record getOrDefault ["uid", _x]] call TCWA3_fnc_scoreAttachStats;
     _records pushBack _attendanceRecord;
 } forEach _ledger;
 

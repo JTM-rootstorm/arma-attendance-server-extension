@@ -5,8 +5,8 @@ private _latestByUid = missionNamespace getVariable ["AASE_scoreLatestByUid", cr
 
 private _baselineSnapshot = _baselineByUid getOrDefault [_uid, createHashMap];
 private _latestSnapshot = _latestByUid getOrDefault [_uid, createHashMap];
-private _baseline = [_baselineSnapshot getOrDefault ["scores", []]] call AASE_fnc_scoreNormalizeArray;
-private _latest = [_latestSnapshot getOrDefault ["scores", _baseline]] call AASE_fnc_scoreNormalizeArray;
+private _baseline = [_baselineSnapshot getOrDefault ["scores", []]] call TCWA3_fnc_scoreNormalizeArray;
+private _latest = [_latestSnapshot getOrDefault ["scores", _baseline]] call TCWA3_fnc_scoreNormalizeArray;
 private _delta = [];
 
 for "_index" from 0 to 5 do {
