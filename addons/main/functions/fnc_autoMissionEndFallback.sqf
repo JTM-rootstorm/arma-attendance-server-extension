@@ -14,8 +14,8 @@ private _handlerId = addMissionEventHandler ["Ended", {
             ["source_detail", "Mission Ended event handler"],
             ["reason", "mission_ended"]
         ]
-    ] call AASE_fnc_operationFinish;
+    ] call TCWA3_fnc_operationFinish;
 }];
 
 missionNamespace setVariable ["AASE_missionEndedEh", _handlerId, false];
-["Mission-end fallback registered.", "INFO"] call AASE_fnc_log;
+["Mission-end fallback registered.", "INFO"] call TCWA3_fnc_log;

@@ -2,7 +2,7 @@
 
 TCWA3 Stats Tracker keeps the Zeus modules as manual controls and adds optional
 server-side automation through CBA settings. Automation calls the same
-`AASE_fnc_operationStart` and `AASE_fnc_operationFinish` functions used by the
+`TCWA3_fnc_operationStart` and `TCWA3_fnc_operationFinish` functions used by the
 modules; it does not spawn module objects.
 
 Automation is disabled by default:

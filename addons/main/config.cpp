@@ -20,9 +20,9 @@ class CfgFactionClasses {
 };
 
 class CfgFunctions {
-    class AASE {
+    class TCWA3 {
         class main {
-            tag = "AASE";
+            tag = "TCWA3";
             class log {
                 file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_log.sqf";
             };
@@ -174,7 +174,7 @@ class CfgVehicles {
         scopeCurator = 2;
         displayName = "$STR_AASE_Module_DebugPoke";
         category = "AASE_Modules";
-        function = "AASE_fnc_moduleDebugPoke";
+        function = "TCWA3_fnc_moduleDebugPoke";
         functionPriority = 1;
         isGlobal = 1;
         isTriggerActivated = 0;
@@ -192,7 +192,7 @@ class CfgVehicles {
         scopeCurator = 2;
         displayName = "$STR_AASE_Module_StartOperation";
         category = "AASE_Modules";
-        function = "AASE_fnc_moduleStartOperation";
+        function = "TCWA3_fnc_moduleStartOperation";
         functionPriority = 1;
         isGlobal = 1;
         isTriggerActivated = 0;
@@ -210,7 +210,7 @@ class CfgVehicles {
         scopeCurator = 2;
         displayName = "$STR_AASE_Module_FinishOperation";
         category = "AASE_Modules";
-        function = "AASE_fnc_moduleFinishOperation";
+        function = "TCWA3_fnc_moduleFinishOperation";
         functionPriority = 1;
         isGlobal = 1;
         isTriggerActivated = 0;

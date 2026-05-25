@@ -40,7 +40,7 @@ Recommended dedicated server launch shape:
 -mod=@CBA_A3;@tcwa3_stats_tracker -serverMod=@tcwa3_stats_tracker_server
 ```
 
-This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names, client addon PBOs, and docs now use `TCWA3 Stats Tracker`, while internal `AASE_fnc_*` functions and the native `arma_attendance` extension basename remain valid for existing missions and server launch scripts.
+This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names, client addon PBOs, docs, and SQF functions now use `TCWA3 Stats Tracker` / `TCWA3_fnc_*`, while the native `arma_attendance` extension basename remains valid for existing server launch scripts.
 
 If the RPT says `Call extension 'arma_attendance' could not be loaded`, verify that both `arma_attendance.so` and `arma_attendance_x64.so` are present in `@tcwa3_stats_tracker_server`. Then run `ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 

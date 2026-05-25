@@ -2,14 +2,14 @@ params ["_unit", ["_presentAtStart", false]];
 
 if (!isServer) exitWith {};
 if (isNull _unit) exitWith {};
-if ([_unit] call AASE_fnc_isHeadlessClient) exitWith {};
+if ([_unit] call TCWA3_fnc_isHeadlessClient) exitWith {};
 if (!isPlayer _unit) exitWith {};
 if (!(missionNamespace getVariable ["AASE_presenceTrackingActive", false]) && {!(missionNamespace getVariable ["AASE_presenceFinalized", false])}) exitWith {};
 
 private _uid = getPlayerUID _unit;
 if (_uid isEqualTo "") exitWith {};
 
-private _playerName = [name _unit, "Unknown Player"] call AASE_fnc_sanitizePlayerName;
+private _playerName = [name _unit, "Unknown Player"] call TCWA3_fnc_sanitizePlayerName;
 private _now = serverTime;
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 private _record = _ledger getOrDefault [_uid, createHashMap];
@@ -92,7 +92,7 @@ if !("stats" in _record) then {
         ["deaths", 0]
     ]];
 };
-[_unit] call AASE_fnc_scoreCaptureUnit;
+[_unit] call TCWA3_fnc_scoreCaptureUnit;
 
 _ledger set [_uid, _record];
 missionNamespace setVariable ["AASE_presenceByUid", _ledger, false];

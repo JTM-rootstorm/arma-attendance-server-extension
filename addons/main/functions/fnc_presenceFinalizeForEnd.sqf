@@ -13,11 +13,11 @@ private _presentAtEnd = createHashMap;
     private _uid = getPlayerUID _x;
     if (_uid isNotEqualTo "") then {
         _presentAtEnd set [_uid, true];
-        [_x] call AASE_fnc_scoreCaptureUnit;
-        [_x, false] call AASE_fnc_markPlayerPresentFromUnit;
+        [_x] call TCWA3_fnc_scoreCaptureUnit;
+        [_x, false] call TCWA3_fnc_markPlayerPresentFromUnit;
     };
-} forEach ([] call AASE_fnc_activePlayerUnits);
-[] call AASE_fnc_scoreCaptureCurrentPlayers;
+} forEach ([] call TCWA3_fnc_activePlayerUnits);
+[] call TCWA3_fnc_scoreCaptureCurrentPlayers;
 
 private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
 {
@@ -28,7 +28,7 @@ private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHash
 } forEach _ledger;
 
 {
-    [_x, _y getOrDefault ["name", ""], "operation_end"] call AASE_fnc_markPlayerAbsent;
+    [_x, _y getOrDefault ["name", ""], "operation_end"] call TCWA3_fnc_markPlayerAbsent;
 } forEach _ledger;
 
 {
@@ -38,4 +38,4 @@ private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHash
 
 missionNamespace setVariable ["AASE_presenceByUid", _ledger, false];
 missionNamespace setVariable ["AASE_presenceFinalized", true, false];
-[] call AASE_fnc_presenceStopLoop;
+[] call TCWA3_fnc_presenceStopLoop;

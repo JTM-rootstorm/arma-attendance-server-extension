@@ -11,10 +11,10 @@ _handle = [] spawn {
             private _uid = getPlayerUID _x;
             if (_uid isNotEqualTo "") then {
                 _seenNow set [_uid, true];
-                [_x] call AASE_fnc_scoreCaptureUnit;
-                [_x, false] call AASE_fnc_markPlayerPresentFromUnit;
+                [_x] call TCWA3_fnc_scoreCaptureUnit;
+                [_x, false] call TCWA3_fnc_markPlayerPresentFromUnit;
             };
-        } forEach ([] call AASE_fnc_activePlayerUnits);
+        } forEach ([] call TCWA3_fnc_activePlayerUnits);
 
         private _ledger = missionNamespace getVariable ["AASE_presenceByUid", createHashMap];
         {
@@ -22,7 +22,7 @@ _handle = [] spawn {
             private _record = _y;
             if ((_record getOrDefault ["state", "unknown"]) isEqualTo "present") then {
                 if (!(_seenNow getOrDefault [_uid, false])) then {
-                    [_uid, _record getOrDefault ["name", ""], "reconcile_missing"] call AASE_fnc_markPlayerAbsent;
+                    [_uid, _record getOrDefault ["name", ""], "reconcile_missing"] call TCWA3_fnc_markPlayerAbsent;
                 };
             };
         } forEach _ledger;

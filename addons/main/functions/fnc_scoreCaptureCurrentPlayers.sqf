@@ -1,5 +1,5 @@
 if (!isServer) exitWith {};
 
 {
-    [_x] call AASE_fnc_scoreCaptureUnit;
-} forEach ([] call AASE_fnc_activePlayerUnits);
+    [_x] call TCWA3_fnc_scoreCaptureUnit;
+} forEach ([] call TCWA3_fnc_activePlayerUnits);

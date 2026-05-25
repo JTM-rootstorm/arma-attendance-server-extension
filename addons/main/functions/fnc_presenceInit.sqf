@@ -13,13 +13,13 @@ missionNamespace setVariable ["AASE_presenceReconcileSeconds", 30, false];
 missionNamespace setVariable ["AASE_presenceTrackingActive", true, false];
 missionNamespace setVariable ["AASE_presenceFinalized", false, false];
 
-[] call AASE_fnc_scoreInit;
+[] call TCWA3_fnc_scoreInit;
 {
-    [_x, true] call AASE_fnc_markPlayerPresentFromUnit;
-} forEach ([] call AASE_fnc_activePlayerUnits);
-[] call AASE_fnc_scoreCaptureCurrentPlayers;
+    [_x, true] call TCWA3_fnc_markPlayerPresentFromUnit;
+} forEach ([] call TCWA3_fnc_activePlayerUnits);
+[] call TCWA3_fnc_scoreCaptureCurrentPlayers;
 
-[] call AASE_fnc_presenceRegisterHandlers;
-[] call AASE_fnc_presenceStartLoop;
+[] call TCWA3_fnc_presenceRegisterHandlers;
+[] call TCWA3_fnc_presenceStartLoop;
 
-[format ["Presence ledger initialized for operation %1.", _operationId], "INFO"] call AASE_fnc_log;
+[format ["Presence ledger initialized for operation %1.", _operationId], "INFO"] call TCWA3_fnc_log;
