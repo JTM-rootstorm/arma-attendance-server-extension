@@ -30,9 +30,13 @@ cmake -S "$ROOT/extension" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "$BUILD_DIR" --config RelWithDebInfo
 ctest --test-dir "$BUILD_DIR" --output-on-failure
 
-LINUX_SO="${BUILD_DIR}/tcwa3_stats_tracker.so"
-LINUX_X64_SO="${BUILD_DIR}/tcwa3_stats_tracker_x64.so"
-WIN_DLL="$(find "$ROOT/build" -name 'tcwa3_stats_tracker_x64.dll' -print -quit || true)"
+LINUX_SO="${TCWA3_LINUX_SO:-${BUILD_DIR}/tcwa3_stats_tracker.so}"
+LINUX_X64_SO="${TCWA3_LINUX_X64_SO:-${BUILD_DIR}/tcwa3_stats_tracker_x64.so}"
+WIN_DLL="${TCWA3_WIN_DLL:-}"
+
+if [[ -z "$WIN_DLL" ]]; then
+  WIN_DLL="$(find "$ROOT/build" "$ROOT/artifacts" -name 'tcwa3_stats_tracker_x64.dll' -print -quit 2>/dev/null || true)"
+fi
 
 if [[ ! -f "$LINUX_SO" ]]; then
   echo "Missing Linux extension artifact: $LINUX_SO" >&2
