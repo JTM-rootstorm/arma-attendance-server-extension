@@ -134,4 +134,11 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/../tools/check_automation_static.py
             ${CMAKE_CURRENT_SOURCE_DIR}/..
     )
+
+    add_test(
+        NAME workshop_package_audit
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tools/test_workshop_package_audit.py
+    )
 endif()

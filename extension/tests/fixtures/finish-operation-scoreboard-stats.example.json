@@ -9,7 +9,7 @@
   },
   "source": {
     "kind": "arma3-addon",
-    "addon": "arma_attendance",
+    "addon": "tcwa3_stats_tracker",
     "stats_source": "arma_getPlayerScores_delta"
   },
   "players": [

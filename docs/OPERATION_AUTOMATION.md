@@ -1,6 +1,6 @@
 # Operation Automation
 
-Arma Attendance keeps the Zeus modules as manual controls and adds optional
+TCWA3 Stats Tracker keeps the Zeus modules as manual controls and adds optional
 server-side automation through CBA settings. Automation calls the same
 `AASE_fnc_operationStart` and `AASE_fnc_operationFinish` functions used by the
 modules; it does not spawn module objects.
@@ -18,9 +18,9 @@ force AASE_enableMissionEndFallback = false;
 Automation does not remove or hide the existing Zeus modules:
 
 ```text
-Attendance: Debug API Poke
-Attendance: Start Operation
-Attendance: Finish Operation
+Stats: Debug API Poke
+Stats: Start Operation
+Stats: Finish Operation
 ```
 
 The modules remain the manual control path for admins and Zeus operators. They

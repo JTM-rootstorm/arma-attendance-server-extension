@@ -1,4 +1,4 @@
 protocol = 1;
 publishedid = 0;
-name = "Arma Attendance";
+name = "TCWA3 Stats Tracker";
 timestamp = 0;

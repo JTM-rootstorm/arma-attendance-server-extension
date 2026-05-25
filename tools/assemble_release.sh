@@ -4,10 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${AASE_RELEASE_VERSION:-v0.1.0-sprint1}"
 DIST="${ROOT}/dist"
-OUT="${DIST}/arma-attendance-extension-${VERSION}"
-ZIP="${DIST}/arma-attendance-extension-${VERSION}.zip"
-SERVERMOD="${OUT}/@arma_attendance_server"
-ADDON="${OUT}/@arma_attendance"
+OUT="${DIST}/tcwa3-stats-tracker-${VERSION}"
+ZIP="${DIST}/tcwa3-stats-tracker-${VERSION}.zip"
+SERVERMOD="${OUT}/@tcwa3_stats_tracker_server"
+ADDON="${OUT}/@tcwa3_stats_tracker"
 BUILD_DIR="${AASE_EXTENSION_BUILD_DIR:-${ROOT}/build/extension-linux}"
 AASE_BIKEY_DIR="${AASE_BIKEY_DIR:-$HOME/Documents/Programming/bikey}"
 
@@ -55,13 +55,14 @@ else
 fi
 
 cp "$ROOT/servermod/arma_attendance.example.toml" "$SERVERMOD/"
+cp "$ROOT/servermod/tcwa3_stats_tracker.example.toml" "$SERVERMOD/"
+cp "$ROOT/servermod/mod.cpp" "$SERVERMOD/"
+cp "$ROOT/servermod/meta.cpp" "$SERVERMOD/"
 cp "$ROOT/servermod/README-server-install.md" "$SERVERMOD/"
 cp "$ROOT/servermod/README-server-install.txt" "$SERVERMOD/"
+cp "$ROOT/servermod/README-workshop-server-extension.md" "$SERVERMOD/"
 
-if find "$OUT" \( -name '*.biprivatekey' -o -name '*.hemttprivatekey' -o -name 'arma_attendance.toml' -o -name '.env' -o -name '.env.*' \) | grep -q .; then
-  echo "Refusing to package private keys or real config." >&2
-  exit 1
-fi
+python3 "$ROOT/tools/audit_workshop_package.py" "$SERVERMOD"
 
 (
   cd "$OUT"

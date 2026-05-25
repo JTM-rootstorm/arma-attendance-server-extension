@@ -1,5 +1,5 @@
-name = "Arma Attendance"
-prefix = "aase"
+name = "TCWA3 Stats Tracker"
+prefix = "tcwa3_stats_tracker"
 mainprefix = "x"
 
 [version]

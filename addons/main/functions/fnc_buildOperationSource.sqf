@@ -29,7 +29,7 @@ private _source = createHashMapFromArray [
     ["kind", "arma3-addon"],
     ["entrypoint", _sourceKind],
     ["entrypoint_detail", _detail],
-    ["addon", "arma_attendance"],
+    ["addon", "tcwa3_stats_tracker"],
     ["extension", "arma_attendance"],
     ["automation", _automation]
 ];

@@ -184,15 +184,28 @@ void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
 }
 
 std::filesystem::path ConfigPath() {
+    if (auto value = GetEnv("TCWA3_STATS_CONFIG_PATH")) {
+        return std::filesystem::path{*value};
+    }
+
     if (auto value = GetEnv("AASE_CONFIG_PATH")) {
         return std::filesystem::path{*value};
     }
 
     const auto module_path = ExtensionModulePath();
     if (!module_path.empty() && module_path.has_parent_path()) {
-        return module_path.parent_path() / "arma_attendance.toml";
+        const auto directory = module_path.parent_path();
+        const auto tcwa3_path = directory / "tcwa3_stats_tracker.toml";
+        if (std::filesystem::exists(tcwa3_path)) {
+            return tcwa3_path;
+        }
+        return directory / "arma_attendance.toml";
     }
 
+    const auto current_tcwa3_path = std::filesystem::current_path() / "tcwa3_stats_tracker.toml";
+    if (std::filesystem::exists(current_tcwa3_path)) {
+        return current_tcwa3_path;
+    }
     return std::filesystem::current_path() / "arma_attendance.toml";
 }
 

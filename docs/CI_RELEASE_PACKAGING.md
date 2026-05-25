@@ -26,9 +26,10 @@ Release assembly:
 
 ```bash
 tools/assemble_release.sh
+tools/assemble_workshop_server_extension.sh
 ```
 
-The script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies generated/public `.bikey` files when present, rejects private key/config material in the package output, writes checksums, and creates `dist/arma-attendance-extension-v0.1.0-sprint1.zip` by default.
+The full release script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies generated/public `.bikey` files when present, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
 
 ## Trusted Signing
 
@@ -51,41 +52,45 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 ## Release Shape
 
 ```text
-@arma_attendance/
+@tcwa3_stats_tracker/
   addons/
+    tcwa3_stats_tracker_main.pbo
   keys/
   mod.cpp
   meta.cpp
 
-@arma_attendance_server/
+@tcwa3_stats_tracker_server/
   arma_attendance.so
   arma_attendance_x64.so
   arma_attendance_x64.dll
+  tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   README-server-install.md
+  README-workshop-server-extension.md
   README-server-install.txt
   checksums.sha256
 ```
 
 The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
+The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace and keeps the native `arma_attendance` binary basename for this transition release so existing SQF calls and mission functions remain compatible. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
 
 ## Linux Load Diagnostics
 
-If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. First verify `@arma_attendance_server` contains both Linux names:
+If Arma logs `Call extension 'arma_attendance' could not be loaded`, it found a candidate extension but the dynamic loader rejected it. First verify `@tcwa3_stats_tracker_server` contains both Linux names:
 
 ```bash
-ls -l @arma_attendance_server/arma_attendance.so @arma_attendance_server/arma_attendance_x64.so
+ls -l @tcwa3_stats_tracker_server/arma_attendance.so @tcwa3_stats_tracker_server/arma_attendance_x64.so
 ```
 
 Then, in the same container or host that runs `arma3server_x64`, run:
 
 ```bash
-file @arma_attendance_server/arma_attendance_x64.so
-ldd @arma_attendance_server/arma_attendance_x64.so
+file @tcwa3_stats_tracker_server/arma_attendance_x64.so
+ldd @tcwa3_stats_tracker_server/arma_attendance_x64.so
 ```
 
 The file must be an x86-64 ELF shared object. No `ldd` line should say `not found`.
 
-The extension reads `arma_attendance.toml` from the loaded extension directory, such as `@arma_attendance_server/arma_attendance.toml`. If a server manager requires storing the file somewhere else, set `AASE_CONFIG_PATH` to the absolute TOML file path.
+The extension prefers `TCWA3_STATS_CONFIG_PATH`, then `AASE_CONFIG_PATH`, then `tcwa3_stats_tracker.toml` and `arma_attendance.toml` beside the loaded extension. Real config should live outside Workshop-managed folders, such as `/etc/tcwa3-stats-tracker/main.toml`.
 
 Operation start and finish submissions use a local NDJSON queue when enabled. The default queue files are `arma_attendance_queue.ndjson` and `arma_attendance_queue.sent.ndjson` beside the server process working directory unless overridden in TOML or with `AASE_QUEUE_FILE` and `AASE_QUEUE_SENT_FILE`. Queue records store request bodies and metadata, never bearer tokens.

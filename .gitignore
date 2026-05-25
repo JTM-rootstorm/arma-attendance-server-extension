@@ -18,11 +18,14 @@ dist/
 
 # Local server config and secrets
 arma_attendance.toml
+tcwa3_stats_tracker.toml
 *.local.toml
 *.env
 .env
 .env.*
 !*.env.example
+*.ndjson
+*.log
 
 # BI signing private keys
 *.biprivatekey

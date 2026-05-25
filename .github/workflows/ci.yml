@@ -32,6 +32,9 @@ jobs:
       - name: Validate SQF module cleanup
         run: python3 extension/tests/validate_sqf_modules.py "$PWD"
 
+      - name: Validate Workshop package audit rules
+        run: python3 tools/test_workshop_package_audit.py
+
   addon-hemtt:
     name: HEMTT addon check/build
     runs-on: ubuntu-latest
@@ -127,7 +130,7 @@ jobs:
       - name: Upload Linux extension
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-extension-linux-x64
+          name: tcwa3-stats-tracker-extension-linux-x64
           path: |
             build/extension-linux/arma_attendance.so
             build/extension-linux/arma_attendance_x64.so
@@ -166,7 +169,7 @@ jobs:
       - name: Upload Windows extension
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-extension-windows-x64
+          name: tcwa3-stats-tracker-extension-windows-x64
           path: build/extension-windows/**/arma_attendance_x64.dll
           if-no-files-found: error
 
@@ -184,13 +187,13 @@ jobs:
       - name: Download Linux extension
         uses: actions/download-artifact@v4
         with:
-          name: arma-attendance-extension-linux-x64
+          name: tcwa3-stats-tracker-extension-linux-x64
           path: artifacts/linux
 
       - name: Download Windows extension
         uses: actions/download-artifact@v4
         with:
-          name: arma-attendance-extension-windows-x64
+          name: tcwa3-stats-tracker-extension-windows-x64
           path: artifacts/windows
 
       - name: Download addon output
@@ -201,26 +204,20 @@ jobs:
 
       - name: Assemble preview
         run: |
-          mkdir -p package/@arma_attendance/addons package/@arma_attendance/keys package/@arma_attendance_server
-          find artifacts/addon-hemtt -type f -name '*.pbo' -exec sh -c 'mkdir -p package/@arma_attendance/addons && cp "$1" package/@arma_attendance/addons/' sh {} \;
-          find artifacts/addon-hemtt -type f -name '*.bisign' -exec cp {} package/@arma_attendance/addons/ \;
-          cp mod.cpp meta.cpp package/@arma_attendance/
-          find artifacts/linux -name 'arma_attendance.so' -exec cp {} package/@arma_attendance_server/ \;
-          find artifacts/linux -name 'arma_attendance_x64.so' -exec cp {} package/@arma_attendance_server/ \;
-          find artifacts/windows -name 'arma_attendance_x64.dll' -exec cp {} package/@arma_attendance_server/ \;
-          cp servermod/arma_attendance.example.toml package/@arma_attendance_server/
-          cp servermod/README-server-install.md package/@arma_attendance_server/
-          cp servermod/README-server-install.txt package/@arma_attendance_server/
-          (cd package && find . -type f ! -name checksums.sha256 -print0 | sort -z | xargs -0 sha256sum > @arma_attendance_server/checksums.sha256)
-          if find package \( -name '*.biprivatekey' -o -name '*.hemttprivatekey' -o -name 'arma_attendance.toml' -o -name '.env' -o -name '.env.*' \) | grep -q .; then
-            echo "Preview package contains forbidden private material or real config." >&2
-            exit 1
-          fi
+          mkdir -p package/@tcwa3_stats_tracker/addons package/@tcwa3_stats_tracker/keys
+          find artifacts/addon-hemtt -type f -name '*.pbo' -exec sh -c 'mkdir -p package/@tcwa3_stats_tracker/addons && cp "$1" package/@tcwa3_stats_tracker/addons/' sh {} \;
+          find artifacts/addon-hemtt -type f -name '*.bisign' -exec cp {} package/@tcwa3_stats_tracker/addons/ \;
+          cp mod.cpp meta.cpp package/@tcwa3_stats_tracker/
+          mkdir -p build/extension-linux artifacts/windows
+          find artifacts/linux -name 'arma_attendance.so' -exec cp {} build/extension-linux/ \;
+          find artifacts/linux -name 'arma_attendance_x64.so' -exec cp {} build/extension-linux/ \;
+          find artifacts/windows -name 'arma_attendance_x64.dll' -exec cp {} artifacts/windows/ \;
+          TCWA3_SERVER_WORKSHOP_OUT="$PWD/package" TCWA3_WIN_DLL="$PWD/artifacts/windows/arma_attendance_x64.dll" tools/assemble_workshop_server_extension.sh
           find package -maxdepth 4 -type f -print
 
       - name: Upload preview package
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-extension-release-preview
+          name: tcwa3-stats-tracker-release-preview
           path: package/**
           if-no-files-found: error

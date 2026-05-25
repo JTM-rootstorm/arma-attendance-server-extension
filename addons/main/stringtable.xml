@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project name="Arma Attendance">
+<Project name="TCWA3 Stats Tracker">
     <Package name="main">
         <Key ID="STR_AASE_Module_DebugPoke">
-            <English>Attendance: Debug API Poke</English>
+            <English>Stats: Debug API Poke</English>
         </Key>
         <Key ID="STR_AASE_Module_DebugPoke_Description">
-            <English>Calls the server-side Arma Attendance extension debug poke command.</English>
+            <English>Calls the server-side TCWA3 Stats Tracker extension debug poke command.</English>
         </Key>
         <Key ID="STR_AASE_Module_FinishOperation">
-            <English>Attendance: Finish Operation</English>
+            <English>Stats: Finish Operation</English>
         </Key>
         <Key ID="STR_AASE_Module_FinishOperation_Description">
-            <English>Finishes the active Arma Attendance operation using a server-side player snapshot.</English>
+            <English>Finishes the active TCWA3 Stats Tracker operation using a server-side player snapshot.</English>
         </Key>
         <Key ID="STR_AASE_Module_StartOperation">
-            <English>Attendance: Start Operation</English>
+            <English>Stats: Start Operation</English>
         </Key>
         <Key ID="STR_AASE_Module_StartOperation_Description">
-            <English>Starts an Arma Attendance operation using a server-side player snapshot.</English>
+            <English>Starts a TCWA3 Stats Tracker operation using a server-side player snapshot.</English>
         </Key>
     </Package>
 </Project>

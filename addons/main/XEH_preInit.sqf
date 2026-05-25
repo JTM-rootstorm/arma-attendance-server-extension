@@ -8,4 +8,4 @@
     [] call AASE_fnc_autoInit;
 };
 
-["Arma Attendance Phase 0 addon initialized.", "INFO"] call FUNC(log);
+["TCWA3 Stats Tracker addon initialized.", "INFO"] call FUNC(log);

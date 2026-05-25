@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate scoreboard delta mapping for Arma Attendance.
+"""Validate scoreboard delta mapping for TCWA3 Stats Tracker.
 
 Usage:
     python3 validate-scoreboard-deltas.py templates/tests/scoreboard-delta-cases.json

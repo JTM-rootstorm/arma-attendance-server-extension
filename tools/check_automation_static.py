@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static checks for Arma Attendance CBA automation wiring."""
+"""Static checks for TCWA3 Stats Tracker CBA automation wiring."""
 
 from __future__ import annotations
 

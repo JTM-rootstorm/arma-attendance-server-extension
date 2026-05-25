@@ -1,10 +1,10 @@
-name = "Arma Attendance";
+name = "TCWA3 Stats Tracker";
 picture = "";
 logo = "";
 logoOver = "";
-tooltip = "Arma Attendance";
-tooltipOwned = "Arma Attendance";
-overview = "Phase 0 debug bridge for Arma Attendance.";
+tooltip = "TCWA3 Stats Tracker";
+tooltipOwned = "TCWA3 Stats Tracker";
+overview = "Operation attendance and score tracking bridge for TCWA3 servers.";
 author = "JTM-rootstorm";
 overviewPicture = "";
 hideName = 0;
