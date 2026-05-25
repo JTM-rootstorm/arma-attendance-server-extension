@@ -30,7 +30,7 @@ private _source = createHashMapFromArray [
     ["entrypoint", _sourceKind],
     ["entrypoint_detail", _detail],
     ["addon", "tcwa3_stats_tracker"],
-    ["extension", "arma_attendance"],
+    ["extension", "tcwa3_stats_tracker"],
     ["automation", _automation]
 ];
 

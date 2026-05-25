@@ -47,20 +47,20 @@ endif()
 if(WIN32)
     set_target_properties(arma_attendance PROPERTIES
         PREFIX ""
-        OUTPUT_NAME "arma_attendance_x64"
+        OUTPUT_NAME "tcwa3_stats_tracker_x64"
         SUFFIX ".dll"
     )
 else()
     set_target_properties(arma_attendance PROPERTIES
         PREFIX ""
-        OUTPUT_NAME "arma_attendance"
+        OUTPUT_NAME "tcwa3_stats_tracker"
         SUFFIX ".so"
     )
 
     add_custom_command(TARGET arma_attendance POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:arma_attendance>"
-            "$<TARGET_FILE_DIR:arma_attendance>/arma_attendance_x64.so"
+            "$<TARGET_FILE_DIR:arma_attendance>/tcwa3_stats_tracker_x64.so"
         COMMENT "Copying Linux x64 Arma extension alias"
     )
 endif()

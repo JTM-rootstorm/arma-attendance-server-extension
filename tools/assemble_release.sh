@@ -9,7 +9,6 @@ ZIP="${DIST}/tcwa3-stats-tracker-${VERSION}.zip"
 SERVERMOD="${OUT}/@tcwa3_stats_tracker_server"
 ADDON="${OUT}/@tcwa3_stats_tracker"
 BUILD_DIR="${AASE_EXTENSION_BUILD_DIR:-${ROOT}/build/extension-linux}"
-AASE_BIKEY_DIR="${AASE_BIKEY_DIR:-$HOME/Documents/Programming/bikey}"
 
 export HEMTT_BI_TOOLS="${HEMTT_BI_TOOLS:-/mnt/game_one/SteamLibrary/steamapps/common/Arma 3 Tools/}"
 
@@ -26,9 +25,9 @@ cmake -S "$ROOT/extension" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "$BUILD_DIR" --config RelWithDebInfo
 ctest --test-dir "$BUILD_DIR" --output-on-failure
 
-LINUX_SO="${BUILD_DIR}/arma_attendance.so"
-LINUX_X64_SO="${BUILD_DIR}/arma_attendance_x64.so"
-WIN_DLL="$(find "$ROOT/build" -name 'arma_attendance_x64.dll' -print -quit || true)"
+LINUX_SO="${BUILD_DIR}/tcwa3_stats_tracker.so"
+LINUX_X64_SO="${BUILD_DIR}/tcwa3_stats_tracker_x64.so"
+WIN_DLL="$(find "$ROOT/build" -name 'tcwa3_stats_tracker_x64.dll' -print -quit || true)"
 
 if [[ ! -f "$LINUX_SO" ]]; then
   echo "Missing Linux extension artifact: $LINUX_SO" >&2
@@ -43,8 +42,6 @@ fi
 find "$ROOT/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$ADDON/addons/" \;
 find "$ROOT/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$ADDON/keys/" \;
 cp "$ROOT/.hemttout/release/mod.cpp" "$ROOT/.hemttout/release/meta.cpp" "$ADDON/"
-
-find "$AASE_BIKEY_DIR" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$ADDON/keys/" \;
 
 cp "$LINUX_SO" "$SERVERMOD/"
 cp "$LINUX_X64_SO" "$SERVERMOD/"

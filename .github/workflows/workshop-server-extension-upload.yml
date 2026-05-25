@@ -73,8 +73,8 @@ jobs:
         with:
           name: tcwa3-stats-tracker-extension-linux-x64
           path: |
-            build/extension-linux/arma_attendance.so
-            build/extension-linux/arma_attendance_x64.so
+            build/extension-linux/tcwa3_stats_tracker.so
+            build/extension-linux/tcwa3_stats_tracker_x64.so
           if-no-files-found: error
 
   windows-extension:
@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tcwa3-stats-tracker-extension-windows-x64
-          path: build/extension-windows/**/arma_attendance_x64.dll
+          path: build/extension-windows/**/tcwa3_stats_tracker_x64.dll
           if-no-files-found: error
 
   assemble:

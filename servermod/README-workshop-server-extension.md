@@ -4,9 +4,9 @@ This folder is the server-only Workshop package for the native Arma extension. I
 
 ```text
 @tcwa3_stats_tracker_server/
-  arma_attendance.so
-  arma_attendance_x64.so
-  arma_attendance_x64.dll
+  tcwa3_stats_tracker.so
+  tcwa3_stats_tracker_x64.so
+  tcwa3_stats_tracker_x64.dll
   tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   mod.cpp
@@ -16,7 +16,7 @@ This folder is the server-only Workshop package for the native Arma extension. I
   checksums.sha256
 ```
 
-The extension basename remains `arma_attendance` for this transition release. SQF still calls the native binary with `"arma_attendance" callExtension [...]`, while addon helper functions use the `TCWA3_fnc_*` namespace.
+The extension basename is `tcwa3_stats_tracker`. SQF calls the native binary with `"tcwa3_stats_tracker" callExtension [...]`, while addon helper functions use the `TCWA3_fnc_*` namespace.
 
 ## External Config
 

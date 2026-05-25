@@ -110,16 +110,16 @@ jobs:
 
               cmake --build build/extension-linux --config Release
 
-              file build/extension-linux/arma_attendance_x64.so
-              ldd build/extension-linux/arma_attendance_x64.so
-              if ldd build/extension-linux/arma_attendance_x64.so | grep -E "libcurl|libstdc\+\+|libgcc_s"; then
+              file build/extension-linux/tcwa3_stats_tracker_x64.so
+              ldd build/extension-linux/tcwa3_stats_tracker_x64.so
+              if ldd build/extension-linux/tcwa3_stats_tracker_x64.so | grep -E "libcurl|libstdc\+\+|libgcc_s"; then
                 echo "Linux extension still depends on libcurl/libstdc++/libgcc_s from the server image." >&2
                 exit 1
               fi
 
               echo "Required GLIBC symbol versions:"
-              objdump -T build/extension-linux/arma_attendance_x64.so | grep -Eo "GLIBC_[0-9]+\.[0-9]+" | sort -Vu
-              if objdump -T build/extension-linux/arma_attendance_x64.so | grep -E "GLIBC_2\.(3[2-9]|[4-9][0-9])"; then
+              objdump -T build/extension-linux/tcwa3_stats_tracker_x64.so | grep -Eo "GLIBC_[0-9]+\.[0-9]+" | sort -Vu
+              if objdump -T build/extension-linux/tcwa3_stats_tracker_x64.so | grep -E "GLIBC_2\.(3[2-9]|[4-9][0-9])"; then
                 echo "Linux extension requires GLIBC newer than 2.31." >&2
                 exit 1
               fi
@@ -132,8 +132,8 @@ jobs:
         with:
           name: tcwa3-stats-tracker-extension-linux-x64
           path: |
-            build/extension-linux/arma_attendance.so
-            build/extension-linux/arma_attendance_x64.so
+            build/extension-linux/tcwa3_stats_tracker.so
+            build/extension-linux/tcwa3_stats_tracker_x64.so
           if-no-files-found: error
 
   extension-windows:
@@ -170,7 +170,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tcwa3-stats-tracker-extension-windows-x64
-          path: build/extension-windows/**/arma_attendance_x64.dll
+          path: build/extension-windows/**/tcwa3_stats_tracker_x64.dll
           if-no-files-found: error
 
   release-preview:
@@ -209,10 +209,10 @@ jobs:
           find artifacts/addon-hemtt -type f -name '*.bisign' -exec cp {} package/@tcwa3_stats_tracker/addons/ \;
           cp mod.cpp meta.cpp package/@tcwa3_stats_tracker/
           mkdir -p build/extension-linux artifacts/windows
-          find artifacts/linux -name 'arma_attendance.so' -exec cp {} build/extension-linux/ \;
-          find artifacts/linux -name 'arma_attendance_x64.so' -exec cp {} build/extension-linux/ \;
-          find artifacts/windows -name 'arma_attendance_x64.dll' -exec cp {} artifacts/windows/ \;
-          TCWA3_SERVER_WORKSHOP_OUT="$PWD/package" TCWA3_WIN_DLL="$PWD/artifacts/windows/arma_attendance_x64.dll" tools/assemble_workshop_server_extension.sh
+          find artifacts/linux -name 'tcwa3_stats_tracker.so' -exec cp {} build/extension-linux/ \;
+          find artifacts/linux -name 'tcwa3_stats_tracker_x64.so' -exec cp {} build/extension-linux/ \;
+          find artifacts/windows -name 'tcwa3_stats_tracker_x64.dll' -exec cp {} artifacts/windows/ \;
+          TCWA3_SERVER_WORKSHOP_OUT="$PWD/package" TCWA3_WIN_DLL="$PWD/artifacts/windows/tcwa3_stats_tracker_x64.dll" tools/assemble_workshop_server_extension.sh
           find package -maxdepth 4 -type f -print
 
       - name: Upload preview package

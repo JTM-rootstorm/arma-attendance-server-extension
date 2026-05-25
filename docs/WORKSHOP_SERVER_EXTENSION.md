@@ -21,13 +21,13 @@ export TCWA3_STATS_CONFIG_PATH="/etc/tcwa3-stats-tracker/main.toml"
   -profiles=profiles/main
 ```
 
-The server extension package keeps the native binary basename as `arma_attendance` for compatibility:
+The server extension package uses the native binary basename `tcwa3_stats_tracker`:
 
 ```text
 @tcwa3_stats_tracker_server/
-  arma_attendance.so
-  arma_attendance_x64.so
-  arma_attendance_x64.dll
+  tcwa3_stats_tracker.so
+  tcwa3_stats_tracker_x64.so
+  tcwa3_stats_tracker_x64.dll
   tcwa3_stats_tracker.example.toml
   arma_attendance.example.toml
   mod.cpp
@@ -98,8 +98,8 @@ steamcmd +force_install_dir /srv/steamcmd \
 ln -sfn /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_CLIENT_ITEM_ID" /srv/arma3/instances/main/@tcwa3_stats_tracker
 ln -sfn /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_SERVER_EXTENSION_ITEM_ID" /srv/arma3/instances/main/@tcwa3_stats_tracker_server
 
-test -f /srv/arma3/instances/main/@tcwa3_stats_tracker_server/arma_attendance_x64.so
-ldd /srv/arma3/instances/main/@tcwa3_stats_tracker_server/arma_attendance_x64.so
+test -f /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
+ldd /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ```
 
 Some environments require a Steam account that owns Arma 3 for Workshop downloads. Plan for authenticated SteamCMD and Steam Guard instead of assuming anonymous pulls.
