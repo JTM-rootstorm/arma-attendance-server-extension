@@ -1,0 +1,25 @@
+name = "TCWA3 Stats Tracker Server Extension"
+prefix = "tcwa3_stats_tracker_server"
+mainprefix = "x"
+
+[version]
+major = 0
+minor = 1
+patch = 0
+git_hash = 8
+
+[files]
+include = [
+  "mod.cpp",
+  "meta.cpp",
+  "README-server-install.md",
+  "README-workshop-server-extension.md"
+]
+
+[properties]
+author = "JTM-rootstorm"
+url = "https://github.com/JTM-rootstorm/arma-attendance-server-extension"
+
+[signing]
+authority = "tcwa3_stats_tracker_server"
+version = 3

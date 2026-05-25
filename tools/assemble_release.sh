@@ -16,10 +16,15 @@ echo "Working tree status:"
 git -C "$ROOT" status --short
 
 rm -rf "$OUT" "$ZIP"
-mkdir -p "$SERVERMOD" "$ADDON/addons" "$ADDON/keys"
+mkdir -p "$SERVERMOD/addons" "$SERVERMOD/keys" "$ADDON/addons" "$ADDON/keys"
 
 hemtt check
 hemtt release --no-archive
+(
+  cd "$ROOT/servermod"
+  rm -rf .hemttout
+  hemtt release --no-archive
+)
 
 cmake -S "$ROOT/extension" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "$BUILD_DIR" --config RelWithDebInfo
@@ -42,6 +47,9 @@ fi
 find "$ROOT/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$ADDON/addons/" \;
 find "$ROOT/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$ADDON/keys/" \;
 cp "$ROOT/.hemttout/release/mod.cpp" "$ROOT/.hemttout/release/meta.cpp" "$ADDON/"
+
+find "$ROOT/servermod/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
+find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 
 cp "$LINUX_SO" "$SERVERMOD/"
 cp "$LINUX_X64_SO" "$SERVERMOD/"

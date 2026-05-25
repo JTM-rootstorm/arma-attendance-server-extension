@@ -29,7 +29,7 @@ tools/assemble_release.sh
 tools/assemble_workshop_server_extension.sh
 ```
 
-The full release script runs `hemtt release --no-archive` for a locally signed addon, builds the Linux extension, copies the freshly generated public `.bikey`, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
+The full release script runs `hemtt release --no-archive` for the client addon and server-extension Publisher marker addon, builds the Linux extension, copies freshly generated public `.bikey` files, audits the server package, writes checksums, and creates `dist/tcwa3-stats-tracker-v0.1.0-sprint1.zip` by default. The Workshop server-extension assembly script builds only `dist/workshop-server-extension/@tcwa3_stats_tracker_server` and runs the same package audit.
 
 ## Trusted Signing
 
@@ -60,6 +60,9 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   meta.cpp
 
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll
@@ -71,7 +74,7 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
   checksums.sha256
 ```
 
-The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
+The public addon may be loaded by clients and the server. The server extension package is dedicated-server only. Its small Publisher marker PBO exists so Arma 3 Publisher accepts the Workshop item; it does not contain runtime logic.
 The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace, SQF callExtension basename, and native binary basename. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
 
 ## Linux Load Diagnostics

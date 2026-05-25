@@ -23,6 +23,9 @@ The client/server addon and server-only extension are packaged separately:
   meta.cpp
 
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll

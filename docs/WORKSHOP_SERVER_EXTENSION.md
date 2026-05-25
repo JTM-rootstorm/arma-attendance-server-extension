@@ -25,6 +25,9 @@ The server extension package uses the native binary basename `tcwa3_stats_tracke
 
 ```text
 @tcwa3_stats_tracker_server/
+  addons/
+    tcwa3_stats_tracker_server_publisher.pbo
+  keys/
   tcwa3_stats_tracker.so
   tcwa3_stats_tracker_x64.so
   tcwa3_stats_tracker_x64.dll
@@ -36,6 +39,8 @@ The server extension package uses the native binary basename `tcwa3_stats_tracke
   README-workshop-server-extension.md
   checksums.sha256
 ```
+
+The `addons/` PBO is an inert Publisher marker so Arma 3 Publisher can upload the server-only Workshop item. Runtime behavior still comes from the native extension files and the public client/server addon.
 
 ## Config
 
