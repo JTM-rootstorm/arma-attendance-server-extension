@@ -1,5 +1,5 @@
 name = "TCWA3 Stats Tracker"
-prefix = "aase"
+prefix = "tcwa3_stats_tracker"
 mainprefix = "x"
 
 [version]

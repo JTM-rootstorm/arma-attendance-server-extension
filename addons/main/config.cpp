@@ -1,7 +1,7 @@
 #include "script_component.hpp"
 
 class CfgPatches {
-    class aase_main {
+    class tcwa3_stats_tracker_main {
         name = "TCWA3 Stats Tracker";
         units[] = {"AASE_Module_DebugPoke", "AASE_Module_StartOperation", "AASE_Module_FinishOperation"};
         weapons[] = {};
@@ -24,139 +24,139 @@ class CfgFunctions {
         class main {
             tag = "AASE";
             class log {
-                file = "\x\aase\addons\main\functions\fnc_log.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_log.sqf";
             };
             class encodeJson {
-                file = "\x\aase\addons\main\functions\fnc_encodeJson.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_encodeJson.sqf";
             };
             class sanitizePlayerName {
-                file = "\x\aase\addons\main\functions\fnc_sanitizePlayerName.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_sanitizePlayerName.sqf";
             };
             class isHeadlessClient {
-                file = "\x\aase\addons\main\functions\fnc_isHeadlessClient.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_isHeadlessClient.sqf";
             };
             class activePlayerUnits {
-                file = "\x\aase\addons\main\functions\fnc_activePlayerUnits.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_activePlayerUnits.sqf";
             };
             class callExtension {
-                file = "\x\aase\addons\main\functions\fnc_callExtension.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_callExtension.sqf";
             };
             class poke {
-                file = "\x\aase\addons\main\functions\fnc_poke.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_poke.sqf";
             };
             class moduleDebugPoke {
-                file = "\x\aase\addons\main\functions\fnc_moduleDebugPoke.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_moduleDebugPoke.sqf";
             };
             class buildMissionPayload {
-                file = "\x\aase\addons\main\functions\fnc_buildMissionPayload.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildMissionPayload.sqf";
             };
             class buildPlayerSnapshot {
-                file = "\x\aase\addons\main\functions\fnc_buildPlayerSnapshot.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildPlayerSnapshot.sqf";
             };
             class buildPlayersSnapshot {
-                file = "\x\aase\addons\main\functions\fnc_buildPlayersSnapshot.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildPlayersSnapshot.sqf";
             };
             class buildOperationStartPayload {
-                file = "\x\aase\addons\main\functions\fnc_buildOperationStartPayload.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildOperationStartPayload.sqf";
             };
             class buildOperationFinishPayload {
-                file = "\x\aase\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildOperationFinishPayload.sqf";
             };
             class deleteModuleLogic {
-                file = "\x\aase\addons\main\functions\fnc_deleteModuleLogic.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_deleteModuleLogic.sqf";
             };
             class buildOperationSource {
-                file = "\x\aase\addons\main\functions\fnc_buildOperationSource.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildOperationSource.sqf";
             };
             class registerAutomationSettings {
-                file = "\x\aase\addons\main\functions\fnc_registerAutomationSettings.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_registerAutomationSettings.sqf";
             };
             class autoInit {
-                file = "\x\aase\addons\main\functions\fnc_autoInit.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoInit.sqf";
             };
             class startAutomation {
-                file = "\x\aase\addons\main\functions\fnc_startAutomation.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_startAutomation.sqf";
             };
             class stopAutomation {
-                file = "\x\aase\addons\main\functions\fnc_stopAutomation.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_stopAutomation.sqf";
             };
             class autoTriggerWatcher {
-                file = "\x\aase\addons\main\functions\fnc_autoTriggerWatcher.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoTriggerWatcher.sqf";
             };
             class autoDelayedStart {
-                file = "\x\aase\addons\main\functions\fnc_autoDelayedStart.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoDelayedStart.sqf";
             };
             class autoMissionEndFallback {
-                file = "\x\aase\addons\main\functions\fnc_autoMissionEndFallback.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoMissionEndFallback.sqf";
             };
             class findMissionTriggerByName {
-                file = "\x\aase\addons\main\functions\fnc_findMissionTriggerByName.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_findMissionTriggerByName.sqf";
             };
             class scoreNormalizeArray {
-                file = "\x\aase\addons\main\functions\fnc_scoreNormalizeArray.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreNormalizeArray.sqf";
             };
             class scoreInit {
-                file = "\x\aase\addons\main\functions\fnc_scoreInit.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreInit.sqf";
             };
             class scoreCaptureUnit {
-                file = "\x\aase\addons\main\functions\fnc_scoreCaptureUnit.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreCaptureUnit.sqf";
             };
             class scoreCaptureCurrentPlayers {
-                file = "\x\aase\addons\main\functions\fnc_scoreCaptureCurrentPlayers.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreCaptureCurrentPlayers.sqf";
             };
             class scoreDelta {
-                file = "\x\aase\addons\main\functions\fnc_scoreDelta.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreDelta.sqf";
             };
             class scoreStatsForUid {
-                file = "\x\aase\addons\main\functions\fnc_scoreStatsForUid.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreStatsForUid.sqf";
             };
             class scoreAttachStats {
-                file = "\x\aase\addons\main\functions\fnc_scoreAttachStats.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreAttachStats.sqf";
             };
             class presenceInit {
-                file = "\x\aase\addons\main\functions\fnc_presenceInit.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_presenceInit.sqf";
             };
             class presenceRegisterHandlers {
-                file = "\x\aase\addons\main\functions\fnc_presenceRegisterHandlers.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_presenceRegisterHandlers.sqf";
             };
             class presenceStartLoop {
-                file = "\x\aase\addons\main\functions\fnc_presenceStartLoop.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_presenceStartLoop.sqf";
             };
             class presenceStopLoop {
-                file = "\x\aase\addons\main\functions\fnc_presenceStopLoop.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_presenceStopLoop.sqf";
             };
             class markPlayerPresentFromUnit {
-                file = "\x\aase\addons\main\functions\fnc_markPlayerPresentFromUnit.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_markPlayerPresentFromUnit.sqf";
             };
             class markUidPresentPending {
-                file = "\x\aase\addons\main\functions\fnc_markUidPresentPending.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_markUidPresentPending.sqf";
             };
             class markPlayerAbsent {
-                file = "\x\aase\addons\main\functions\fnc_markPlayerAbsent.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_markPlayerAbsent.sqf";
             };
             class incrementPresenceStat {
-                file = "\x\aase\addons\main\functions\fnc_incrementPresenceStat.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_incrementPresenceStat.sqf";
             };
             class presenceFinalizeForEnd {
-                file = "\x\aase\addons\main\functions\fnc_presenceFinalizeForEnd.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_presenceFinalizeForEnd.sqf";
             };
             class buildAttendanceRecords {
-                file = "\x\aase\addons\main\functions\fnc_buildAttendanceRecords.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_buildAttendanceRecords.sqf";
             };
             class extractJsonStringField {
-                file = "\x\aase\addons\main\functions\fnc_extractJsonStringField.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_extractJsonStringField.sqf";
             };
             class operationStart {
-                file = "\x\aase\addons\main\functions\fnc_operationStart.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_operationStart.sqf";
             };
             class operationFinish {
-                file = "\x\aase\addons\main\functions\fnc_operationFinish.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_operationFinish.sqf";
             };
             class moduleStartOperation {
-                file = "\x\aase\addons\main\functions\fnc_moduleStartOperation.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_moduleStartOperation.sqf";
             };
             class moduleFinishOperation {
-                file = "\x\aase\addons\main\functions\fnc_moduleFinishOperation.sqf";
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_moduleFinishOperation.sqf";
             };
         };
     };

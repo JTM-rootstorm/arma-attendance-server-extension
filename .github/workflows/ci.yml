@@ -130,7 +130,7 @@ jobs:
       - name: Upload Linux extension
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-extension-linux-x64
+          name: tcwa3-stats-tracker-extension-linux-x64
           path: |
             build/extension-linux/arma_attendance.so
             build/extension-linux/arma_attendance_x64.so
@@ -169,7 +169,7 @@ jobs:
       - name: Upload Windows extension
         uses: actions/upload-artifact@v4
         with:
-          name: arma-attendance-extension-windows-x64
+          name: tcwa3-stats-tracker-extension-windows-x64
           path: build/extension-windows/**/arma_attendance_x64.dll
           if-no-files-found: error
 
@@ -187,13 +187,13 @@ jobs:
       - name: Download Linux extension
         uses: actions/download-artifact@v4
         with:
-          name: arma-attendance-extension-linux-x64
+          name: tcwa3-stats-tracker-extension-linux-x64
           path: artifacts/linux
 
       - name: Download Windows extension
         uses: actions/download-artifact@v4
         with:
-          name: arma-attendance-extension-windows-x64
+          name: tcwa3-stats-tracker-extension-windows-x64
           path: artifacts/windows
 
       - name: Download addon output

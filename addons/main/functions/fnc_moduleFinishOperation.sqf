@@ -11,7 +11,7 @@ if (!_activated) exitWith {
 private _result = [
     "zeus_module",
     createHashMapFromArray [
-        ["source_detail", "Attendance Finish Operation"],
+        ["source_detail", "Stats: Finish Operation"],
         ["logic_net_id", netId _logic]
     ]
 ] call AASE_fnc_operationFinish;

@@ -9,7 +9,7 @@
   },
   "source": {
     "kind": "arma3-addon",
-    "addon": "aase_main",
+    "addon": "tcwa3_stats_tracker",
     "extension": "arma_attendance"
   },
   "players": []

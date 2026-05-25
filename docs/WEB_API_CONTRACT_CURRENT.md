@@ -87,8 +87,8 @@ Recommended extension payload:
   "source": {
     "kind": "arma3-addon",
     "entrypoint": "zeus_module",
-    "entrypoint_detail": "Attendance Start Operation",
-    "addon": "arma_attendance",
+    "entrypoint_detail": "Stats: Start Operation",
+    "addon": "tcwa3_stats_tracker",
     "extension": "arma_attendance",
     "automation": false
   },
@@ -145,8 +145,8 @@ Recommended extension payload:
   "source": {
     "kind": "arma3-addon",
     "entrypoint": "zeus_module",
-    "entrypoint_detail": "Attendance Finish Operation",
-    "addon": "arma_attendance",
+    "entrypoint_detail": "Stats: Finish Operation",
+    "addon": "tcwa3_stats_tracker",
     "extension": "arma_attendance",
     "automation": false,
     "stats_source": "arma_getPlayerScores_delta"

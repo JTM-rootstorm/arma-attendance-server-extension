@@ -54,6 +54,7 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 ```text
 @tcwa3_stats_tracker/
   addons/
+    tcwa3_stats_tracker_main.pbo
   keys/
   mod.cpp
   meta.cpp
@@ -71,7 +72,7 @@ Only public `.bikey` files may be copied into release artifacts. Never copy `*.b
 ```
 
 The public addon may be loaded by clients and the server. The server extension package is dedicated-server only.
-The TCWA3 rebrand keeps the native `arma_attendance` binary basename for this transition release so existing SQF calls and mission functions remain compatible. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
+The TCWA3 rebrand uses the `tcwa3_stats_tracker` client addon namespace and keeps the native `arma_attendance` binary basename for this transition release so existing SQF calls and mission functions remain compatible. See [WORKSHOP_SERVER_EXTENSION.md](WORKSHOP_SERVER_EXTENSION.md) for the server-only Workshop package and multi-server SteamCMD update flow.
 
 ## Linux Load Diagnostics
 

@@ -4,7 +4,7 @@ The TCWA3 Stats Tracker release is split into two Workshop items:
 
 ```text
 TCWA3 Stats Tracker
-  Public client/server addon with CBA dependency, Zeus modules, automation SQF, PBOs, signatures, and public key.
+  Public client/server addon with CBA dependency, Zeus modules, automation SQF, tcwa3_stats_tracker_main.pbo, signatures, and public key.
 
 TCWA3 Stats Tracker Server Extension
   Hidden or unlisted server-only package with native extension binaries, metadata, example config, readmes, and checksums.
