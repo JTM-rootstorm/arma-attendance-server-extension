@@ -17,6 +17,8 @@ def validate_module_cleanup(root, relative):
     checks = {
         "cleanup helper": helper_cleanup or "private _cleanup" in text,
         "delete logic": helper_cleanup or "deleteVehicle _moduleLogic" in text,
+        "safe logic default": '["_logic", objNull' in text,
+        "safe activation default": '["_activated", true' in text,
         "non-server cleanup": "if (!isServer) exitWith" in text and (helper_cleanup or "[_logic] call _cleanup" in text),
         "inactive cleanup": "if (!_activated) exitWith" in text and (text.count("TCWA3_fnc_deleteModuleLogic") >= 3 or text.count("[_logic] call _cleanup") >= 3),
         "result return": text.rstrip().endswith("_result"),

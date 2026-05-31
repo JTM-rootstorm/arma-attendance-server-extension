@@ -158,7 +158,8 @@ jobs:
             -G "Visual Studio 17 2022" `
             -A x64 `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DAASE_STATIC_MSVC_RUNTIME=ON
 
       - name: Build
         run: cmake --build build/extension-windows --config Release

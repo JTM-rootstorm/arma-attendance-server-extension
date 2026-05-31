@@ -1,10 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 
+if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(arma_attendance_extension VERSION 0.1.0 LANGUAGES CXX)
 
 include(CTest)
 
 option(AASE_STATIC_GNU_RUNTIME "Statically link GNU C++ runtime into Linux extension builds" ON)
+option(AASE_STATIC_MSVC_RUNTIME "Statically link MSVC runtime into Windows extension builds" ON)
+
+if(AASE_STATIC_MSVC_RUNTIME)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 find_package(CURL REQUIRED)
 
