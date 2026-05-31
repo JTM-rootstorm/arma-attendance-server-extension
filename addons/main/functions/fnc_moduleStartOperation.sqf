@@ -1,4 +1,8 @@
-params ["_logic", "_units", "_activated"];
+params [
+    ["_logic", objNull, [objNull]],
+    ["_units", [], [[]]],
+    ["_activated", true, [true]]
+];
 
 if (!isServer) exitWith {
     [_logic] call TCWA3_fnc_deleteModuleLogic;
