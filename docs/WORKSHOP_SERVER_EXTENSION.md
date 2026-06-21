@@ -1,29 +1,26 @@
-# TCWA3 Stats Tracker Workshop Server Extension
+# TCWA3 Stats Tracker Workshop Package
 
-The TCWA3 Stats Tracker release is split into two Workshop items:
+The TCWA3 Stats Tracker release ships as one Workshop item:
 
 ```text
-TCWA3 Stats Tracker
-  Public client/server addon with CBA dependency, Zeus modules, automation SQF, tcwa3_stats_tracker_main.pbo, signatures, and public key.
-
 TCWA3 Stats Tracker Server Extension
-  Hidden or unlisted server-only package with native extension binaries, metadata, example config, readmes, and checksums.
+  Client/server CBA addon plus native extension binaries, metadata, example config, readmes, and checksums.
 ```
 
-Load the public addon with `-mod` and the server-only package with `-serverMod`:
+Load the combined package with `-mod` on clients and the dedicated server:
 
 ```bash
 ./arma3server_x64 \
-  -mod=@CBA_A3\;@tcwa3_stats_tracker \
-  -serverMod=@tcwa3_stats_tracker_server \
+  -mod=@CBA_A3\;@tcwa3_stats_tracker_server \
   -profiles=profiles/main
 ```
 
-The server extension package uses the native binary basename `tcwa3_stats_tracker`:
+The package uses the native binary basename `tcwa3_stats_tracker`:
 
 ```text
 @tcwa3_stats_tracker_server/
   addons/
+    tcwa3_stats_tracker_main.pbo
     tcwa3_stats_tracker_server_publisher.pbo
   keys/
   tcwa3_stats_tracker.so
@@ -38,7 +35,10 @@ The server extension package uses the native binary basename `tcwa3_stats_tracke
   checksums.sha256
 ```
 
-The `addons/` PBO is an inert Publisher marker so Arma 3 Publisher can upload the server-only Workshop item. Runtime behavior still comes from the native extension files and the public client/server addon.
+`tcwa3_stats_tracker_main.pbo` contains the runtime addon logic. The small
+`tcwa3_stats_tracker_server_publisher.pbo` remains in the package as Publisher
+metadata. Clients download the native extension files too, but only the
+dedicated server calls them.
 
 ## Config
 
@@ -62,24 +62,25 @@ AASE_CONFIG_PATH
 
 ## SteamCMD Multi-Server Updates
 
-Use one shared Workshop cache for downloads. The public addon can be symlinked, but the server extension folder should be copied or overlaid per server so each instance can keep its own writable config and queue files beside the native extension:
+Use one shared Workshop cache for downloads. Copy or overlay the combined
+folder per server so each instance can keep its own writable config and queue
+files beside the native extension:
 
 ```text
 /srv/steamcmd/steamapps/workshop/content/107410/
-  <client_item_id>/
   <server_extension_item_id>/
 
 /srv/arma3/instances/main/
-  @tcwa3_stats_tracker -> /srv/steamcmd/steamapps/workshop/content/107410/<client_item_id>
   @tcwa3_stats_tracker_server/
+    addons/tcwa3_stats_tracker_main.pbo
     tcwa3_stats_tracker_x64.so
     tcwa3_stats_tracker.toml
     tcwa3_stats_tracker_queue.ndjson
   profiles/
 
 /srv/arma3/instances/training/
-  @tcwa3_stats_tracker -> /srv/steamcmd/steamapps/workshop/content/107410/<client_item_id>
   @tcwa3_stats_tracker_server/
+    addons/tcwa3_stats_tracker_main.pbo
     tcwa3_stats_tracker_x64.so
     tcwa3_stats_tracker.toml
     tcwa3_stats_tracker_queue.ndjson
@@ -99,11 +100,9 @@ Example update flow:
 ```bash
 steamcmd +force_install_dir /srv/steamcmd \
   +login "$STEAM_USERNAME" \
-  +workshop_download_item 107410 "$TCWA3_CLIENT_ITEM_ID" validate \
   +workshop_download_item 107410 "$TCWA3_SERVER_EXTENSION_ITEM_ID" validate \
   +quit
 
-ln -sfn /srv/steamcmd/steamapps/workshop/content/107410/"$TCWA3_CLIENT_ITEM_ID" /srv/arma3/instances/main/@tcwa3_stats_tracker
 rsync -a --delete \
   --exclude 'tcwa3_stats_tracker.toml' \
   --exclude 'arma_attendance.toml' \
@@ -112,6 +111,7 @@ rsync -a --delete \
   /srv/arma3/instances/main/@tcwa3_stats_tracker_server/
 
 test -f /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
+test -f /srv/arma3/instances/main/@tcwa3_stats_tracker_server/addons/tcwa3_stats_tracker_main.pbo
 ldd /srv/arma3/instances/main/@tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so
 ```
 

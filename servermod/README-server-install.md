@@ -1,14 +1,17 @@
-# TCWA3 Stats Tracker Server Install
+# TCWA3 Stats Tracker Install
 
-Copy `@tcwa3_stats_tracker` to clients and the dedicated server. Copy `@tcwa3_stats_tracker_server` to the dedicated server only.
+Copy `@tcwa3_stats_tracker_server` to clients and the dedicated server.
 
 This release uses the TCWA3 naming scheme for public folders, Workshop metadata, SQF functions, and native extension files.
 
 Recommended launch flags:
 
 ```text
--mod=@CBA_A3;@tcwa3_stats_tracker -serverMod=@tcwa3_stats_tracker_server
+-mod=@CBA_A3;@tcwa3_stats_tracker_server
 ```
+
+The package includes both the CBA addon PBO and native extension files. Clients
+download the extension binaries too, but only the dedicated server calls them.
 
 ## Config
 
@@ -33,7 +36,7 @@ No `ldd` line should say `not found`.
 
 ## Smoke Flow
 
-1. Start the dedicated server with CBA, `@tcwa3_stats_tracker`, and `@tcwa3_stats_tracker_server`.
+1. Start the dedicated server with CBA and `@tcwa3_stats_tracker_server`.
 2. Open Zeus.
 3. Place `Stats: Debug API Poke`.
 4. Place `Stats: Start Operation`.

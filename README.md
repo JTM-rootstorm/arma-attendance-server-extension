@@ -10,20 +10,15 @@ This repository owns only the Arma addon wrapper, Zeus/debug module plumbing, na
 
 The current sprint keeps that debug path intact while adding operation start/finish submission toward the web API documented in [docs/WEB_API_CONTRACT_CURRENT.md](docs/WEB_API_CONTRACT_CURRENT.md). Actual dedicated-server validation is not required for this sprint.
 
-## Packages
+## Package
 
-The client/server addon and server-only extension are packaged separately:
+The client/server addon and native extension ship together in one deployable
+folder:
 
 ```text
-@tcwa3_stats_tracker/
-  addons/
-    tcwa3_stats_tracker_main.pbo
-  keys/
-  mod.cpp
-  meta.cpp
-
 @tcwa3_stats_tracker_server/
   addons/
+    tcwa3_stats_tracker_main.pbo
     tcwa3_stats_tracker_server_publisher.pbo
   keys/
   tcwa3_stats_tracker.so
@@ -40,10 +35,14 @@ The client/server addon and server-only extension are packaged separately:
 Recommended dedicated server launch shape:
 
 ```text
--mod=@CBA_A3;@tcwa3_stats_tracker -serverMod=@tcwa3_stats_tracker_server
+-mod=@CBA_A3;@tcwa3_stats_tracker_server
 ```
 
-This is a compatibility-first rebrand from the previous `Arma Attendance` name. Public package names, client addon PBOs, SQF functions, and native extension binaries now use `TCWA3 Stats Tracker` / `tcwa3_stats_tracker` naming.
+Clients and the dedicated server load the same `@tcwa3_stats_tracker_server`
+folder through `-mod`. Clients will download the native extension files as
+package bloat, but only the dedicated server calls the extension.
+
+This is a compatibility-first rebrand from the previous `Arma Attendance` name. Addon PBOs, SQF functions, and native extension binaries now use `TCWA3 Stats Tracker` / `tcwa3_stats_tracker` naming.
 
 If the RPT says `Call extension 'tcwa3_stats_tracker' could not be loaded`, verify that both `tcwa3_stats_tracker.so` and `tcwa3_stats_tracker_x64.so` are present in `@tcwa3_stats_tracker_server`. Then run `ldd @tcwa3_stats_tracker_server/tcwa3_stats_tracker_x64.so` inside the same Linux container that runs `arma3server_x64`. Any `not found` dependency will prevent Arma from loading the extension. If dependencies are present, also confirm the container has glibc 2.31 or newer with `ldd --version`.
 

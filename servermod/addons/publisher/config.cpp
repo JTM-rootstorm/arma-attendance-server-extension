@@ -16,7 +16,7 @@ class CfgMods {
         name = "TCWA3 Stats Tracker Server Extension";
         author = "JTM-rootstorm";
         tooltip = "TCWA3 Stats Tracker Server Extension";
-        overview = "Publisher marker addon for the server-only TCWA3 Stats Tracker native extension package. Load this Workshop item with -serverMod on dedicated servers only.";
+        overview = "Publisher marker addon for the combined TCWA3 Stats Tracker addon and native extension package. Load this Workshop item with -mod on clients and dedicated servers.";
         actionName = "GitHub";
         action = "https://github.com/JTM-rootstorm/arma-attendance-server-extension";
     };

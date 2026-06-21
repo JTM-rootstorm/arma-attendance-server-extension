@@ -7,7 +7,6 @@ DIST="${ROOT}/dist"
 OUT="${DIST}/tcwa3-stats-tracker-${VERSION}"
 ZIP="${DIST}/tcwa3-stats-tracker-${VERSION}.zip"
 SERVERMOD="${OUT}/@tcwa3_stats_tracker_server"
-ADDON="${OUT}/@tcwa3_stats_tracker"
 BUILD_DIR="${AASE_EXTENSION_BUILD_DIR:-${ROOT}/build/extension-linux}"
 
 export HEMTT_BI_TOOLS="${HEMTT_BI_TOOLS:-/mnt/game_one/SteamLibrary/steamapps/common/Arma 3 Tools/}"
@@ -16,7 +15,7 @@ echo "Working tree status:"
 git -C "$ROOT" status --short
 
 rm -rf "$OUT" "$ZIP"
-mkdir -p "$SERVERMOD/addons" "$SERVERMOD/keys" "$ADDON/addons" "$ADDON/keys"
+mkdir -p "$SERVERMOD/addons" "$SERVERMOD/keys"
 
 hemtt check
 hemtt release --no-archive
@@ -48,10 +47,8 @@ if [[ ! -f "$LINUX_X64_SO" ]]; then
   exit 1
 fi
 
-find "$ROOT/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$ADDON/addons/" \;
-find "$ROOT/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$ADDON/keys/" \;
-cp "$ROOT/.hemttout/release/mod.cpp" "$ROOT/.hemttout/release/meta.cpp" "$ADDON/"
-
+find "$ROOT/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
+find "$ROOT/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 find "$ROOT/servermod/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
 find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 

@@ -1,10 +1,13 @@
-# TCWA3 Stats Tracker Server Extension Workshop Package
+# TCWA3 Stats Tracker Workshop Package
 
-This folder is the server-only Workshop package for the native Arma extension. It is meant to be hidden or unlisted on Steam Workshop and loaded with `-serverMod`, not `-mod`.
+This folder is the combined Workshop package for the TCWA3 Stats Tracker CBA
+addon and native Arma extension. Load it with `-mod` on clients and dedicated
+servers.
 
 ```text
 @tcwa3_stats_tracker_server/
   addons/
+    tcwa3_stats_tracker_main.pbo
     tcwa3_stats_tracker_server_publisher.pbo
   keys/
   tcwa3_stats_tracker.so
@@ -19,7 +22,11 @@ This folder is the server-only Workshop package for the native Arma extension. I
   checksums.sha256
 ```
 
-The extension basename is `tcwa3_stats_tracker`. SQF calls the native binary with `"tcwa3_stats_tracker" callExtension [...]`, while addon helper functions use the `TCWA3_fnc_*` namespace. The `addons/` PBO is an inert Publisher marker so Arma 3 Publisher can upload this server-only Workshop item.
+The extension basename is `tcwa3_stats_tracker`. SQF calls the native binary
+with `"tcwa3_stats_tracker" callExtension [...]`, while addon helper functions
+use the `TCWA3_fnc_*` namespace. The `tcwa3_stats_tracker_main.pbo` file
+contains runtime addon logic. The `tcwa3_stats_tracker_server_publisher.pbo`
+file remains as a small Publisher marker.
 
 ## Config
 

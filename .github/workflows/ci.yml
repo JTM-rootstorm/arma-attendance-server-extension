@@ -210,12 +210,6 @@ jobs:
           name: tcwa3-stats-tracker-extension-windows-x64
           path: artifacts/windows
 
-      - name: Download addon output
-        uses: actions/download-artifact@v4
-        with:
-          name: addon-hemtt-output
-          path: artifacts/addon-hemtt
-
       - name: Install HEMTT
         run: |
           set -euo pipefail
@@ -228,10 +222,6 @@ jobs:
 
       - name: Assemble preview
         run: |
-          mkdir -p package/@tcwa3_stats_tracker/addons package/@tcwa3_stats_tracker/keys
-          find artifacts/addon-hemtt -type f -name '*.pbo' -exec sh -c 'mkdir -p package/@tcwa3_stats_tracker/addons && cp "$1" package/@tcwa3_stats_tracker/addons/' sh {} \;
-          find artifacts/addon-hemtt -type f -name '*.bisign' -exec cp {} package/@tcwa3_stats_tracker/addons/ \;
-          cp mod.cpp meta.cpp package/@tcwa3_stats_tracker/
           mkdir -p build/extension-linux artifacts/windows
           find artifacts/linux -name 'tcwa3_stats_tracker.so' -exec cp {} build/extension-linux/ \;
           find artifacts/linux -name 'tcwa3_stats_tracker_x64.so' -exec cp {} build/extension-linux/ \;

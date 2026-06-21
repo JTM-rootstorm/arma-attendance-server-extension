@@ -35,6 +35,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         clean = root / "@tcwa3_stats_tracker_server"
+        write(clean / "addons" / "tcwa3_stats_tracker_main.pbo", "placeholder pbo\n")
         write(clean / "addons" / "tcwa3_stats_tracker_server_publisher.pbo", "placeholder pbo\n")
         write(clean / "tcwa3_stats_tracker.example.toml", 'api_token = "aat_arma_server_REPLACE_WITH_REAL_TOKEN"\n')
         write(clean / "README-server-install.md", "TCWA3 Stats Tracker\n")
@@ -44,22 +45,30 @@ def main() -> int:
 
         missing_pbo = root / "missing-pbo"
         write(missing_pbo / "tcwa3_stats_tracker.example.toml", 'api_token = "aat_arma_server_REPLACE_WITH_REAL_TOKEN"\n')
-        if not expect_dirty(missing_pbo, "addons/: missing Publisher marker PBO"):
+        if not expect_dirty(missing_pbo, "addons/: missing addon PBOs"):
+            return 1
+
+        missing_main_pbo = root / "missing-main-pbo"
+        write(missing_main_pbo / "addons" / "tcwa3_stats_tracker_server_publisher.pbo", "placeholder pbo\n")
+        if not expect_dirty(missing_main_pbo, "addons/: missing tcwa3_stats_tracker_main.pbo"):
             return 1
 
         real_config = root / "real-config"
+        write(real_config / "addons" / "tcwa3_stats_tracker_main.pbo", "placeholder pbo\n")
         write(real_config / "addons" / "tcwa3_stats_tracker_server_publisher.pbo", "placeholder pbo\n")
         write(real_config / "tcwa3_stats_tracker.toml", "[http]\n")
         if not expect_dirty(real_config, "tcwa3_stats_tracker.toml"):
             return 1
 
         private_key = root / "private-key"
+        write(private_key / "addons" / "tcwa3_stats_tracker_main.pbo", "placeholder pbo\n")
         write(private_key / "addons" / "tcwa3_stats_tracker_server_publisher.pbo", "placeholder pbo\n")
         write(private_key / "tcwa3.biprivatekey", "not a real key\n")
         if not expect_dirty(private_key, "tcwa3.biprivatekey"):
             return 1
 
         token = root / "token"
+        write(token / "addons" / "tcwa3_stats_tracker_main.pbo", "placeholder pbo\n")
         write(token / "addons" / "tcwa3_stats_tracker_server_publisher.pbo", "placeholder pbo\n")
         write(token / "tcwa3_stats_tracker.example.toml", 'api_token = "' + "aat_" + 'fake_token"\n')
         if not expect_dirty(token, "api_token"):

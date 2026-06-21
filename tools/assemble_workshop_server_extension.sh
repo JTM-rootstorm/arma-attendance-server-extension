@@ -18,6 +18,12 @@ rm -rf "$SERVERMOD"
 mkdir -p "$SERVERMOD/addons" "$SERVERMOD/keys"
 
 (
+  cd "$ROOT"
+  rm -rf .hemttout
+  hemtt release --no-archive
+)
+
+(
   cd "$ROOT/servermod"
   rm -rf .hemttout
   hemtt release --no-archive
@@ -36,6 +42,8 @@ fi
 cp "$LINUX_SO" "$SERVERMOD/"
 cp "$LINUX_X64_SO" "$SERVERMOD/"
 
+find "$ROOT/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
+find "$ROOT/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 find "$ROOT/servermod/.hemttout/release/addons" -maxdepth 1 -type f \( -name '*.pbo' -o -name '*.bisign' \) -exec cp {} "$SERVERMOD/addons/" \;
 find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey' -exec cp {} "$SERVERMOD/keys/" \;
 

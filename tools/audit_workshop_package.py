@@ -67,7 +67,13 @@ def audit(root: Path) -> list[str]:
     findings: list[str] = []
     addon_files = sorted((root / "addons").glob("*.pbo")) if (root / "addons").is_dir() else []
     if not addon_files:
-        findings.append("addons/: missing Publisher marker PBO")
+        findings.append("addons/: missing addon PBOs")
+    else:
+        addon_names = {path.name for path in addon_files}
+        if "tcwa3_stats_tracker_main.pbo" not in addon_names:
+            findings.append("addons/: missing tcwa3_stats_tracker_main.pbo")
+        if "tcwa3_stats_tracker_server_publisher.pbo" not in addon_names:
+            findings.append("addons/: missing tcwa3_stats_tracker_server_publisher.pbo")
 
     for path in sorted(item for item in root.rglob("*") if item.is_file()):
         relative = path.relative_to(root)
