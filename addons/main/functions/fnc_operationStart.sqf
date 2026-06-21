@@ -23,6 +23,7 @@ if (_operationId isNotEqualTo "") then {
     missionNamespace setVariable ["AASE_operationMissionUid", _mission getOrDefault ["mission_uid", ""], false];
     missionNamespace setVariable ["AASE_operationStartSource", _payload get "source", false];
     [_operationId, 0.5] call TCWA3_fnc_presenceInit;
+    [true] call TCWA3_fnc_autoMissionEndFallback;
     [format ["Operation started: %1 source=%2", _operationId, _sourceKind], "INFO"] call TCWA3_fnc_log;
 } else {
     [format ["Operation start did not return operation_id: %1", _result], "ERROR"] call TCWA3_fnc_log;

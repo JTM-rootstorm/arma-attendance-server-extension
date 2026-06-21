@@ -165,6 +165,12 @@ class CfgFunctions {
     };
 };
 
+class Extended_PreInit_EventHandlers {
+    class tcwa3_stats_tracker_main {
+        init = "call compile preprocessFileLineNumbers '\x\tcwa3_stats_tracker\addons\main\XEH_preInit.sqf'";
+    };
+};
+
 class CfgVehicles {
     class Logic;
     class Module_F: Logic {

@@ -1,13 +1,21 @@
 if (!isServer) exitWith {};
 
-if !(missionNamespace getVariable ["AASE_enableMissionEndFallback", false]) exitWith {};
+params [["_force", false]];
+
+if (_force) then {
+    missionNamespace setVariable ["AASE_missionEndFallbackForced", true, false];
+};
+
+if (!(missionNamespace getVariable ["AASE_enableMissionEndFallback", false]) && {!_force}) exitWith {};
 if ((missionNamespace getVariable ["AASE_missionEndedEh", -1]) >= 0) exitWith {};
 
 private _handlerId = addMissionEventHandler ["Ended", {
     params [["_endType", "UNKNOWN"]];
 
     if (!isServer) exitWith {};
-    if (!(missionNamespace getVariable ["AASE_enableMissionEndFallback", false])) exitWith {};
+    private _fallbackEnabled = missionNamespace getVariable ["AASE_enableMissionEndFallback", false];
+    private _fallbackForced = missionNamespace getVariable ["AASE_missionEndFallbackForced", false];
+    if (!(_fallbackEnabled || _fallbackForced)) exitWith {};
     if (!(missionNamespace getVariable ["AASE_operationActive", false])) exitWith {};
 
     private _endTypeText = if (_endType isEqualType "") then {_endType} else {str _endType};

@@ -23,3 +23,4 @@ if (_missionEndedEh >= 0) then {
     removeMissionEventHandler ["Ended", _missionEndedEh];
     missionNamespace setVariable ["AASE_missionEndedEh", -1, false];
 };
+missionNamespace setVariable ["AASE_missionEndFallbackForced", false, false];

@@ -79,6 +79,31 @@ def validate_registration(root: Path) -> bool:
     return ok
 
 
+def validate_xeh_bootstrap(root: Path) -> bool:
+    config = read(root / "addons" / "main" / "config.cpp")
+    preinit = read(root / "addons" / "main" / "XEH_preInit.sqf")
+    ok = True
+
+    for needle in (
+        "class Extended_PreInit_EventHandlers",
+        "class tcwa3_stats_tracker_main",
+        "XEH_preInit.sqf",
+    ):
+        if needle not in config:
+            ok = bad(f"Missing CBA preInit bootstrap wiring: {needle}") and ok
+    for needle in (
+        "TCWA3_fnc_autoInit",
+        "FUNC(registerAutomationSettings)",
+        "TCWA3 Stats Tracker addon initialized.",
+    ):
+        if needle not in preinit:
+            ok = bad(f"XEH_preInit.sqf missing bootstrap call/log: {needle}") and ok
+
+    if ok:
+        print("[OK] automation XEH bootstrap is wired")
+    return ok
+
+
 def validate_settings(root: Path) -> bool:
     text = read(root / "addons" / "main" / "functions" / "fnc_registerAutomationSettings.sqf")
     ok = True
@@ -122,6 +147,10 @@ def validate_automation_calls(root: Path) -> bool:
             ok = bad(f"Mission-end outcome helper missing failure classification: {needle}") and ok
     if '"outcome"' not in read(funcs / "fnc_buildOperationFinishPayload.sqf"):
         ok = bad("Finish payload must include top-level outcome") and ok
+    if "[true] call TCWA3_fnc_autoMissionEndFallback" not in read(funcs / "fnc_operationStart.sqf"):
+        ok = bad("Operation start must force-register mission-end fallback for active operations") and ok
+    if "AASE_missionEndFallbackForced" not in fallback_text:
+        ok = bad("Mission-end fallback must support forced registration for active operations") and ok
     for source_kind in ("zeus_module", "named_trigger", "delayed_auto_start", "mission_end_fallback"):
         if source_kind not in source_text:
             ok = bad(f"Source metadata helper missing {source_kind}") and ok
@@ -172,6 +201,7 @@ def main(argv: list[str]) -> int:
     root = Path(argv[1]) if len(argv) > 1 else Path.cwd()
     checks = (
         validate_registration(root),
+        validate_xeh_bootstrap(root),
         validate_settings(root),
         validate_automation_calls(root),
         validate_modules(root),
