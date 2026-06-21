@@ -300,6 +300,58 @@ def validate_scoreboard_stats(root):
     return ok
 
 
+def validate_mission_end_fallback(root):
+    checks = {
+        "addons/main/XEH_PREP.hpp": [
+            ("missionEndOutcome compile", "fnc_missionEndOutcome.sqf"),
+        ],
+        "addons/main/config.cpp": [
+            ("missionEndOutcome CfgFunctions entry", "class missionEndOutcome"),
+        ],
+        "addons/main/functions/fnc_missionEndOutcome.sqf": [
+            ("Loser failure end type", "LOSER"),
+            ("Killed failure end type", "KILLED"),
+            ("failure marker matching", '"FAIL"'),
+            ("defeat marker matching", '"DEFEAT"'),
+            ("custom configured failures", "AASE_failedMissionEndTypes"),
+        ],
+        "addons/main/functions/fnc_autoMissionEndFallback.sqf": [
+            ("Ended handler registration", 'addMissionEventHandler ["Ended"'),
+            ("untyped end type param", '["_endType", "UNKNOWN"]'),
+            ("mission end outcome helper", "TCWA3_fnc_missionEndOutcome"),
+            ("operation finish call", "TCWA3_fnc_operationFinish"),
+            ("end type source metadata", '["end_type", _endTypeText]'),
+        ],
+        "addons/main/functions/fnc_operationFinish.sqf": [
+            ("finish response status extraction", '[_result, "status"] call TCWA3_fnc_extractJsonStringField'),
+            ("failed response accepted", '"failed"'),
+            ("finished response accepted", '"finished"'),
+            ("presence finalization before payload", "TCWA3_fnc_presenceFinalizeForEnd"),
+        ],
+    }
+    forbidden = {
+        "addons/main/functions/fnc_autoMissionEndFallback.sqf": [
+            ("must not force string-only end type", '["_endType", "UNKNOWN", [""]]'),
+        ],
+    }
+
+    ok = True
+    for relative, required in checks.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        for name, needle in required:
+            if needle not in text:
+                print(f"[FAIL] {relative}: missing {name}", file=sys.stderr)
+                ok = False
+        for name, needle in forbidden.get(relative, []):
+            if needle in text:
+                print(f"[FAIL] {relative}: {name}", file=sys.stderr)
+                ok = False
+
+    if ok:
+        print("[OK] SQF mission-end fallback")
+    return ok
+
+
 def main(argv):
     root = Path(argv[1]) if len(argv) > 1 else Path.cwd()
     ok = True
@@ -309,6 +361,7 @@ def main(argv):
     ok = validate_player_name_preservation(root) and ok
     ok = validate_headless_client_filter(root) and ok
     ok = validate_scoreboard_stats(root) and ok
+    ok = validate_mission_end_fallback(root) and ok
     return 0 if ok else 1
 
 

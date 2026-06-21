@@ -214,8 +214,9 @@ Recommended extension payload:
 
 `outcome` is the operation result observed by the addon. Manual Zeus finish and
 named finish trigger submissions send `"success"`. The mission-ended fallback
-sends `"failed"` for standard Arma failure end types such as `LOSER` and
-`KILLED`, and includes the original Arma end type as `source.end_type`.
+sends `"failed"` for Arma failure end types such as `LOSER` and `KILLED`, plus
+failure-like custom end names, and includes the original Arma end type as
+`source.end_type`.
 
 Expected success shape is similar to start, with `status: "finished"` and `normalized.stats_seen` reflecting players with stats.
 

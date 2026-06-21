@@ -20,6 +20,7 @@
 [QFUNC(autoTriggerWatcher), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoTriggerWatcher.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(autoDelayedStart), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoDelayedStart.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(autoMissionEndFallback), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoMissionEndFallback.sqf"]] call CBA_fnc_compileFunction;
+[QFUNC(missionEndOutcome), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_missionEndOutcome.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(findMissionTriggerByName), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_findMissionTriggerByName.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreNormalizeArray), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreNormalizeArray.sqf"]] call CBA_fnc_compileFunction;
 [QFUNC(scoreInit), compileScript ["\x\tcwa3_stats_tracker\addons\main\functions\fnc_scoreInit.sqf"]] call CBA_fnc_compileFunction;

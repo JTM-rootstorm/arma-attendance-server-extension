@@ -21,7 +21,12 @@ if (_operationId isEqualTo "") exitWith {
 private _payload = [_operationId, _sourceKind, _sourceMeta, _outcome] call TCWA3_fnc_buildOperationFinishPayload;
 private _payloadJson = [_payload] call TCWA3_fnc_encodeJson;
 private _result = ["operation_finish", [_operationId, _payloadJson]] call TCWA3_fnc_callExtension;
-private _accepted = (_result find '"ok":true') >= 0 && {(_result find '"accepted":true') >= 0};
+private _status = [_result, "status"] call TCWA3_fnc_extractJsonStringField;
+private _accepted = (_result find '"ok":true') >= 0
+    && {
+        ((_result find '"accepted":true') >= 0)
+            || {_status in ["finished", "failed"]}
+    };
 
 if (_accepted) then {
     missionNamespace setVariable ["AASE_operationActive", false, false];

@@ -79,8 +79,15 @@ force AASE_enableMissionEndFallback = true;
 ```
 
 The finish payload uses `mission_end_fallback` source metadata and includes the
-Arma mission end type as `source.end_type`. Standard failure end types such as
-`LOSER` and `KILLED` send finish payload `outcome: "failed"`; other mission
-end types send `outcome: "success"`. If the web API cannot be reached during
-shutdown, the native extension queue preserves the finish request for a later
-flush.
+Arma mission end type as `source.end_type`. Arma failure end types such as
+`LOSER` and `KILLED`, plus failure-like custom end names, send finish payload
+`outcome: "failed"`; other mission end types send `outcome: "success"`. If the
+web API cannot be reached during shutdown, the native extension queue preserves
+the finish request for a later flush.
+
+Missions that use neutral custom ending names for failure can add those names
+to `AASE_failedMissionEndTypes` before mission end:
+
+```sqf
+missionNamespace setVariable ["AASE_failedMissionEndTypes", ["END2"], false];
+```

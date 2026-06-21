@@ -28,6 +28,7 @@ REQUIRED_FUNCTIONS = (
     "autoTriggerWatcher",
     "autoDelayedStart",
     "autoMissionEndFallback",
+    "missionEndOutcome",
     "findMissionTriggerByName",
     "deleteModuleLogic",
     "buildOperationSource",
@@ -100,6 +101,7 @@ def validate_automation_calls(root: Path) -> bool:
     trigger_text = read(funcs / "fnc_autoTriggerWatcher.sqf")
     delayed_text = read(funcs / "fnc_autoDelayedStart.sqf")
     fallback_text = read(funcs / "fnc_autoMissionEndFallback.sqf")
+    outcome_text = read(funcs / "fnc_missionEndOutcome.sqf")
     source_text = read(funcs / "fnc_buildOperationSource.sqf")
     ok = True
 
@@ -112,9 +114,12 @@ def validate_automation_calls(root: Path) -> bool:
         ok = bad("Delayed auto-start must call operationStart with delayed_auto_start source") and ok
     if "TCWA3_fnc_operationFinish" not in fallback_text or "mission_end_fallback" not in fallback_text:
         ok = bad("Mission-end fallback must call operationFinish with mission_end_fallback source") and ok
-    for needle in ("params", "_endType", "LOSER", "KILLED", "\"failed\"", "\"end_type\""):
+    for needle in ("params", "_endType", "TCWA3_fnc_missionEndOutcome", "\"end_type\""):
         if needle not in fallback_text:
             ok = bad(f"Mission-end fallback missing failure outcome wiring: {needle}") and ok
+    for needle in ("LOSER", "KILLED", "\"FAIL\"", "\"failed\"", "AASE_failedMissionEndTypes"):
+        if needle not in outcome_text:
+            ok = bad(f"Mission-end outcome helper missing failure classification: {needle}") and ok
     if '"outcome"' not in read(funcs / "fnc_buildOperationFinishPayload.sqf"):
         ok = bad("Finish payload must include top-level outcome") and ok
     for source_kind in ("zeus_module", "named_trigger", "delayed_auto_start", "mission_end_fallback"):

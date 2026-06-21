@@ -80,8 +80,8 @@ Server operators can later enable named trigger or delayed start automation with
 CBA settings without changing API tokens or native extension configuration.
 The Zeus modules remain available as manual controls for debug poke, operation
 start, and operation finish. Manual finish sends operation `outcome: "success"`;
-the mission-ended fallback sends `outcome: "failed"` for standard Arma failure
-end types such as `LOSER` and `KILLED`.
+the mission-ended fallback sends `outcome: "failed"` for Arma failure end types
+such as `LOSER` and `KILLED`, plus failure-like custom end names.
 
 ## Native Commands
 

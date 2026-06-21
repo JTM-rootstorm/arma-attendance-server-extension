@@ -89,6 +89,9 @@ class CfgFunctions {
             class autoMissionEndFallback {
                 file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_autoMissionEndFallback.sqf";
             };
+            class missionEndOutcome {
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_missionEndOutcome.sqf";
+            };
             class findMissionTriggerByName {
                 file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_findMissionTriggerByName.sqf";
             };
