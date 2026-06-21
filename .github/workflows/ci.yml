@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  HEMTT_VERSION: v1.19.1
+
 jobs:
   payload-contract:
     name: Payload contract and SQF static checks
@@ -42,8 +45,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup HEMTT
-        uses: arma-actions/hemtt@v1
+      - name: Install HEMTT
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hemtt-bin"
+          curl -fsSL "https://github.com/BrettMayson/HEMTT/releases/download/${HEMTT_VERSION}/linux-x64.zip" -o "$RUNNER_TEMP/hemtt.zip"
+          unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
+          chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
+          echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/hemtt-bin/hemtt" --version
 
       - name: HEMTT check
         run: hemtt check
@@ -206,8 +216,15 @@ jobs:
           name: addon-hemtt-output
           path: artifacts/addon-hemtt
 
-      - name: Setup HEMTT
-        uses: arma-actions/hemtt@v1
+      - name: Install HEMTT
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hemtt-bin"
+          curl -fsSL "https://github.com/BrettMayson/HEMTT/releases/download/${HEMTT_VERSION}/linux-x64.zip" -o "$RUNNER_TEMP/hemtt.zip"
+          unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
+          chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
+          echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/hemtt-bin/hemtt" --version
 
       - name: Assemble preview
         run: |
