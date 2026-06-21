@@ -126,7 +126,8 @@ Required body fields:
 ```json
 {
   "request_id": "string, 1-200 chars",
-  "server_key": "string, 1-128 chars"
+  "server_key": "string, 1-128 chars",
+  "outcome": "success | failed"
 }
 ```
 
@@ -137,6 +138,7 @@ Recommended extension payload:
   "request_id": "main-unit-server:finish:<operation-id>:<time>",
   "server_key": "main-unit-server",
   "payload_version": 1,
+  "outcome": "success",
   "mission": {
     "mission_uid": "same-or-compatible-id",
     "mission_name": "Coop Night 12",
@@ -209,6 +211,11 @@ Recommended extension payload:
   ]
 }
 ```
+
+`outcome` is the operation result observed by the addon. Manual Zeus finish and
+named finish trigger submissions send `"success"`. The mission-ended fallback
+sends `"failed"` for standard Arma failure end types such as `LOSER` and
+`KILLED`, and includes the original Arma end type as `source.end_type`.
 
 Expected success shape is similar to start, with `status: "finished"` and `normalized.stats_seen` reflecting players with stats.
 

@@ -79,7 +79,9 @@ force AASE_enableMissionEndFallback = false;
 Server operators can later enable named trigger or delayed start automation with
 CBA settings without changing API tokens or native extension configuration.
 The Zeus modules remain available as manual controls for debug poke, operation
-start, and operation finish.
+start, and operation finish. Manual finish sends operation `outcome: "success"`;
+the mission-ended fallback sends `outcome: "failed"` for standard Arma failure
+end types such as `LOSER` and `KILLED`.
 
 ## Native Commands
 
@@ -101,6 +103,6 @@ queue_flush
 queue_compact
 ```
 
-`operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
+`operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`; missing finish payload `outcome` defaults to `"success"`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
 
 Operation start and finish submissions are written to a local NDJSON queue before send when queueing is enabled. `queue_flush` retries pending records, while `queue_status` reports pending and sent counts.

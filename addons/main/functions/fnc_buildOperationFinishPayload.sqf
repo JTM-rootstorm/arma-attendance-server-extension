@@ -1,8 +1,13 @@
 params [
     "_operationId",
     ["_sourceKind", "scripted"],
-    ["_sourceMeta", createHashMap]
+    ["_sourceMeta", createHashMap],
+    ["_outcome", "success"]
 ];
+
+if !(_outcome in ["success", "failed"]) then {
+    _outcome = "success";
+};
 
 private _mission = [] call TCWA3_fnc_buildMissionPayload;
 private _requestId = format ["arma3:finish:%1:%2", _operationId, round diag_tickTime];
@@ -12,6 +17,7 @@ _source set ["stats_source", "arma_getPlayerScores_delta"];
 createHashMapFromArray [
     ["request_id", _requestId],
     ["payload_version", 1],
+    ["outcome", _outcome],
     ["mission", _mission],
     ["source", _source],
     ["operation_id", _operationId],

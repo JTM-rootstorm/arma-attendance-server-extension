@@ -162,8 +162,11 @@ class Handler(BaseHTTPRequestHandler):
                 response["idempotent"] = True
                 self._json(200, response)
                 return
-            response = self._operation_response("finished", payload, operation_id)
-            operations[operation_id]["status"] = "finished"
+            outcome = payload.get("outcome", "success")
+            status = "failed" if outcome == "failed" else "finished"
+            response = self._operation_response(status, payload, operation_id)
+            operations[operation_id]["status"] = status
+            operations[operation_id]["outcome"] = outcome
             operations[operation_id]["raw_end_payload"] = payload
             requests_by_id[request_id] = {
                 "request_id": request_id,
@@ -189,7 +192,7 @@ class Handler(BaseHTTPRequestHandler):
         for player in payload.get("players", []):
             if isinstance(player, dict) and isinstance(player.get("stats"), dict):
                 stats_seen += 1
-        return {
+        response = {
             "ok": True,
             "operation_id": operation_id,
             "status": status,
@@ -198,9 +201,12 @@ class Handler(BaseHTTPRequestHandler):
             "normalized": {
                 "players_seen": len(payload.get("players", [])),
                 "players_ignored_missing_uid": 0,
-                "stats_seen": stats_seen if status == "finished" else 0,
+                "stats_seen": stats_seen if status in {"finished", "failed"} else 0,
             },
         }
+        if status in {"finished", "failed"}:
+            response["outcome"] = payload.get("outcome", "success")
+        return response
 
     def _attendance_records_error(self, payload):
         records = payload.get("attendance_records")

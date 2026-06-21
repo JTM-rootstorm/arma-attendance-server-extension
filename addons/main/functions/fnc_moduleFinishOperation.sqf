@@ -17,7 +17,8 @@ private _result = [
     createHashMapFromArray [
         ["source_detail", "Stats: Finish Operation"],
         ["logic_net_id", netId _logic]
-    ]
+    ],
+    "success"
 ] call TCWA3_fnc_operationFinish;
 [format ["Finish operation result: %1", _result], "INFO"] call TCWA3_fnc_log;
 

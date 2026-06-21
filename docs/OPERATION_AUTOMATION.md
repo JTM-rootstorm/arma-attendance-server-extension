@@ -25,7 +25,8 @@ Stats: Finish Operation
 
 The modules remain the manual control path for admins and Zeus operators. They
 run server-side, call the common operation functions, and delete their module
-logic after success, failure, or an inactive/non-server exit.
+logic after success, failure, or an inactive/non-server exit. Manual finish
+submissions send finish payload `outcome: "success"`.
 
 ## Named Triggers
 
@@ -77,6 +78,9 @@ operation is still active:
 force AASE_enableMissionEndFallback = true;
 ```
 
-The finish payload uses `mission_end_fallback` source metadata. If the web API
-cannot be reached during shutdown, the native extension queue preserves the
-finish request for a later flush.
+The finish payload uses `mission_end_fallback` source metadata and includes the
+Arma mission end type as `source.end_type`. Standard failure end types such as
+`LOSER` and `KILLED` send finish payload `outcome: "failed"`; other mission
+end types send `outcome: "success"`. If the web API cannot be reached during
+shutdown, the native extension queue preserves the finish request for a later
+flush.

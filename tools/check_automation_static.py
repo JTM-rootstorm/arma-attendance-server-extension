@@ -112,6 +112,11 @@ def validate_automation_calls(root: Path) -> bool:
         ok = bad("Delayed auto-start must call operationStart with delayed_auto_start source") and ok
     if "TCWA3_fnc_operationFinish" not in fallback_text or "mission_end_fallback" not in fallback_text:
         ok = bad("Mission-end fallback must call operationFinish with mission_end_fallback source") and ok
+    for needle in ("params", "_endType", "LOSER", "KILLED", "\"failed\"", "\"end_type\""):
+        if needle not in fallback_text:
+            ok = bad(f"Mission-end fallback missing failure outcome wiring: {needle}") and ok
+    if '"outcome"' not in read(funcs / "fnc_buildOperationFinishPayload.sqf"):
+        ok = bad("Finish payload must include top-level outcome") and ok
     for source_kind in ("zeus_module", "named_trigger", "delayed_auto_start", "mission_end_fallback"):
         if source_kind not in source_text:
             ok = bad(f"Source metadata helper missing {source_kind}") and ok

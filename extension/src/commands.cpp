@@ -214,6 +214,9 @@ std::string MinimalOperationPayload(const Config& config, std::string_view kind,
     if (!operation_id.empty()) {
         body << ",\"operation_id\":" << JsonString(operation_id);
     }
+    if (kind == "finish") {
+        body << ",\"outcome\":\"success\"";
+    }
     body << "}";
     return body.str();
 }
@@ -222,6 +225,9 @@ std::string NormalizeOperationPayload(std::string body, const Config& config, st
     body = SetJsonField(std::move(body), "server_key", JsonString(config.server_key));
     body = AddJsonFieldIfMissing(std::move(body), "request_id", JsonString(MakeRequestId(config.server_key, kind)));
     body = AddJsonFieldIfMissing(std::move(body), "payload_version", "1");
+    if (kind == "finish") {
+        body = AddJsonFieldIfMissing(std::move(body), "outcome", JsonString("success"));
+    }
     return body;
 }
 

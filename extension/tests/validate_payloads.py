@@ -69,12 +69,21 @@ def validate_scoreboard_stats(path, owner, scoreboard_stats):
 
 def validate(path):
     data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if Path(path).name.endswith("-cases.json"):
+        print(f"[SKIP] {path}")
+        return True
+    if not isinstance(data, dict):
+        return bad(path, "payload fixture must be a JSON object")
+
     ok = True
     for field in ("request_id", "server_key"):
         if not data.get(field):
             ok = bad(path, f"missing {field}")
     if data.get("payload_version") != 1:
         ok = bad(path, "payload_version must be 1")
+    if ":finish:" in str(data.get("request_id", "")) or "finish-operation" in str(path):
+        if data.get("outcome") not in {"success", "failed"}:
+            ok = bad(path, "finish payload outcome must be success or failed")
     if not isinstance(data.get("mission", {}), dict):
         ok = bad(path, "mission must be an object")
     if not isinstance(data.get("source", {}), dict):

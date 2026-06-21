@@ -192,10 +192,25 @@ int main(int argc, char** argv) {
         ok = false;
     }
 
+    const std::vector<std::string> default_finish_args{SqfStringLiteral(operation_id)};
+    const auto default_finish = ExecuteArgs("operation_finish", default_finish_args);
+    ok = ExpectOk("operation_finish default outcome", default_finish) && ok;
+    ok = Contains(default_finish, "\"outcome\":\"success\"") && ok;
+
+    const std::vector<std::string> second_start_args{
+        SqfStringLiteral("{\"request_id\":\"ci:start:002\",\"payload_version\":1,\"mission\":{\"mission_uid\":\"ci-world:ci-mission:002\",\"mission_name\":\"CI Mission 2\",\"world_name\":\"VR\"},\"players\":[]}")};
+    const auto second_start = ExecuteArgs("operation_start", second_start_args);
+    ok = ExpectOk("operation_start second", second_start) && ok;
+    const auto second_operation_id = ExtractJsonStringField(second_start, "operation_id");
+    if (second_operation_id.empty()) {
+        std::cerr << "operation_start second did not return operation_id: " << second_start << '\n';
+        ok = false;
+    }
+
     SetEnv("AASE_SERVER_KEY", "mismatch-server");
     arma_attendance::ExecuteCommand("reload_config");
     const std::vector<std::string> mismatch_finish_args{
-        SqfStringLiteral(operation_id),
+        SqfStringLiteral(second_operation_id),
         SqfStringLiteral("{\"request_id\":\"ci:finish:mismatch\",\"payload_version\":1,\"players\":[]}")};
     const auto mismatch_finish = ExecuteArgs("operation_finish", mismatch_finish_args);
     if (!Contains(mismatch_finish, "\"terminal\":true") || !Contains(mismatch_finish, "server_key_mismatch")) {
@@ -209,18 +224,19 @@ int main(int argc, char** argv) {
     arma_attendance::ExecuteCommand("reload_config");
 
     const std::vector<std::string> finish_args{
-        SqfStringLiteral(operation_id),
-        SqfStringLiteral(R"json({"request_id":"ci:finish:001","payload_version":1,"players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json")};
+        SqfStringLiteral(second_operation_id),
+        SqfStringLiteral(R"json({"request_id":"ci:finish:001","payload_version":1,"outcome":"failed","players":[{"player_uid":"76561198000000000","name":"Smoke Alpha","stats":{"infantry_kills":0,"vehicle_kills":0,"player_kills":0,"ai_kills":0,"friendly_kills":0,"deaths":0}}],"attendance_records":[{"player_uid":"76561198000000000","name":"Smoke Alpha","present_at_start":true,"present_at_end":true,"joined_after_start":false,"operation_seconds":3600,"attended_seconds":3600,"missed_seconds":0,"attendance_ratio":1.0,"attendance_percent":100.0,"attendance_status":"full","attendance_credit":true,"disconnect_count":0,"reconnect_count":0}]})json")};
     const auto operation_finish = ExecuteArgs("operation_finish", finish_args);
     ok = ExpectOk("operation_finish", operation_finish) && ok;
-    ok = Contains(operation_finish, "\"status\":\"finished\"") && ok;
+    ok = Contains(operation_finish, "\"status\":\"failed\"") && ok;
+    ok = Contains(operation_finish, "\"outcome\":\"failed\"") && ok;
     ok = ExpectNoToken(operation_finish) && ok;
 
     const std::vector<std::string> ingest_args{"ci:start:001"};
     const auto ingest_get = arma_attendance::ExecuteCommand("ingest_request_get", ingest_args);
     ok = ExpectOk("ingest_request_get", ingest_get) && ok;
 
-    const std::vector<std::string> operation_args{operation_id};
+    const std::vector<std::string> operation_args{second_operation_id};
     const auto operation_get = arma_attendance::ExecuteCommand("operation_get", operation_args);
     ok = ExpectOk("operation_get", operation_get) && ok;
 

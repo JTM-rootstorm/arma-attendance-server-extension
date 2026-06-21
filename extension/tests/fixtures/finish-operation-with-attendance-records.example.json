@@ -2,6 +2,7 @@
   "request_id": "ci:finish:attendance-records:001",
   "server_key": "main-unit-server",
   "payload_version": 1,
+  "outcome": "success",
   "operation_id": "00000000-0000-4000-8000-000000000001",
   "mission": {
     "mission_uid": "vr:presence-ledger:001",

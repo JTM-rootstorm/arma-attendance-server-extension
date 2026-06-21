@@ -2,6 +2,7 @@
   "request_id": "main-arma-linux-01:finish:11111111-2222-3333-4444-555555555555:7200",
   "server_key": "main-arma-linux-01",
   "payload_version": 1,
+  "outcome": "success",
   "mission": {
     "mission_uid": "altis:operation-night:example",
     "mission_name": "Operation Night Example",

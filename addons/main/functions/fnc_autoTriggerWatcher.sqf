@@ -66,7 +66,8 @@ _handle = [] spawn {
                                 ["source_detail", _finishName],
                                 ["trigger_name", _finishName],
                                 ["trigger_net_id", netId _finishTrigger]
-                            ]
+                            ],
+                            "success"
                         ] call TCWA3_fnc_operationFinish;
                     };
                 };

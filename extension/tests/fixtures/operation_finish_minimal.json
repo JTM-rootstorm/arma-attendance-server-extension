@@ -2,6 +2,7 @@
   "request_id": "ci:finish:001",
   "server_key": "ci-contract",
   "payload_version": 1,
+  "outcome": "success",
   "mission": {
     "mission_uid": "ci-world:ci-mission:001",
     "mission_name": "CI Mission",

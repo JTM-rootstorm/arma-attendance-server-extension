@@ -2,6 +2,7 @@
   "request_id": "main-arma-linux-01:finish:00000000-0000-0000-0000-000000000000:22345",
   "server_key": "main-arma-linux-01",
   "payload_version": 1,
+  "outcome": "success",
   "mission": {
     "mission_uid": "altis:co40-operation-example",
     "mission_name": "CO40 Operation Example",
