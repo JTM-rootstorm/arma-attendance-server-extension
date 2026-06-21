@@ -53,7 +53,7 @@ jobs:
           unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
           chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
           echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/hemtt-bin/hemtt" --version
+          "$RUNNER_TEMP/hemtt-bin/hemtt" --version || true
 
       - name: HEMTT check
         run: hemtt check
@@ -224,7 +224,7 @@ jobs:
           unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
           chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
           echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/hemtt-bin/hemtt" --version
+          "$RUNNER_TEMP/hemtt-bin/hemtt" --version || true
 
       - name: Assemble preview
         run: |
