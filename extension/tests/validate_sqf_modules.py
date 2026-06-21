@@ -84,7 +84,7 @@ def validate_operation_json(root):
     return ok
 
 
-def validate_player_name_sanitizer(root):
+def validate_player_name_preservation(root):
     checks = {
         "addons/main/XEH_PREP.hpp": [
             ("sanitizePlayerName compile", "fnc_sanitizePlayerName.sqf"),
@@ -93,43 +93,48 @@ def validate_player_name_sanitizer(root):
             ("sanitizePlayerName CfgFunctions entry", "class sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_sanitizePlayerName.sqf": [
-            ("digit allowance", "_x >= 48"),
-            ("uppercase allowance", "_x >= 65"),
-            ("lowercase allowance", "_x >= 97"),
+            ("raw name return", "_name"),
             ("fallback handling", "_fallback"),
         ],
         "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
-            ("snapshot name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("snapshot name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
-            ("presence name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("presence name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
-            ("score capture name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("score capture name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markPlayerAbsent.sqf": [
-            ("absence name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("absence name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_markUidPresentPending.sqf": [
-            ("pending reconnect name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("pending reconnect name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_incrementPresenceStat.sqf": [
-            ("stat name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("stat name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
         "addons/main/functions/fnc_buildAttendanceRecords.sqf": [
-            ("attendance record name sanitization", "TCWA3_fnc_sanitizePlayerName"),
+            ("attendance record name preservation", "TCWA3_fnc_sanitizePlayerName"),
         ],
     }
     forbidden = {
+        "addons/main/functions/fnc_sanitizePlayerName.sqf": [
+            ("must not walk characters", "forEach toArray"),
+            ("must not replace characters", "pushBack 32"),
+            ("must not filter digits", "_x >= 48"),
+            ("must not filter uppercase letters", "_x >= 65"),
+            ("must not filter lowercase letters", "_x >= 97"),
+        ],
         "addons/main/functions/fnc_buildPlayerSnapshot.sqf": [
-            ("snapshot must not send raw player name", '["name", name _unit]'),
+            ("snapshot must preserve via common helper", '["name", name _unit]'),
         ],
         "addons/main/functions/fnc_markPlayerPresentFromUnit.sqf": [
-            ("presence record must not store raw player name", '["name", name _unit]'),
-            ("presence update must not store raw player name", '_record set ["name", name _unit]'),
+            ("presence record must preserve via common helper", '["name", name _unit]'),
+            ("presence update must preserve via common helper", '_record set ["name", name _unit]'),
         ],
         "addons/main/functions/fnc_scoreCaptureUnit.sqf": [
-            ("score capture must not store raw player name", '["name", name _unit]'),
+            ("score capture must preserve via common helper", '["name", name _unit]'),
         ],
     }
 
@@ -146,7 +151,7 @@ def validate_player_name_sanitizer(root):
                 ok = False
 
     if ok:
-        print("[OK] SQF player name sanitization")
+        print("[OK] SQF player name preservation")
     return ok
 
 
@@ -301,7 +306,7 @@ def main(argv):
     for module in MODULES:
         ok = validate_module_cleanup(root, module) and ok
     ok = validate_operation_json(root) and ok
-    ok = validate_player_name_sanitizer(root) and ok
+    ok = validate_player_name_preservation(root) and ok
     ok = validate_headless_client_filter(root) and ok
     ok = validate_scoreboard_stats(root) and ok
     return 0 if ok else 1

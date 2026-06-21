@@ -156,7 +156,7 @@ Recommended extension payload:
   "players": [
     {
       "player_uid": "76561198000000000",
-      "name": "Example Player",
+      "name": "Example-Player \"Quoted\" O'Malley",
       "side": "WEST",
       "group": "Alpha 1-1",
       "role": "Rifleman",
@@ -188,7 +188,7 @@ Recommended extension payload:
   "attendance_records": [
     {
       "player_uid": "76561198000000000",
-      "name": "Example Player",
+      "name": "Example-Player \"Quoted\" O'Malley",
       "present_at_start": true,
       "present_at_end": true,
       "joined_after_start": false,
@@ -235,10 +235,10 @@ UID fields: player_uid, arma_uid, steam_id, uid
 Name fields: name, player_name, display_name
 ```
 
-Use `player_uid` and `name` for clarity. The addon sanitizes player names to
-ASCII alphanumeric words separated by single spaces before sending them, so
-quotes, control characters, symbols, and non-ASCII text cannot break the SQF
-JSON payload boundary.
+Use `player_uid` and `name` for clarity. The addon preserves player names
+exactly as Arma reports them, including dashes, quotes, symbols, and non-ASCII
+text. The SQF JSON encoder escapes JSON syntax characters at the payload
+boundary instead of normalizing the source value.
 
 Metadata fields currently normalized:
 

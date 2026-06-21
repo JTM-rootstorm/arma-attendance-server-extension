@@ -12,7 +12,7 @@
   "players": [
     {
       "player_uid": "76561198000000000",
-      "name": "Smoke Alpha",
+      "name": "Smoke-Alpha \"Dash\" O'Malley",
       "side": "WEST",
       "group": "Alpha 1-1",
       "role": "Rifleman",
@@ -31,7 +31,7 @@
   "attendance_records": [
     {
       "player_uid": "76561198000000000",
-      "name": "Smoke Alpha",
+      "name": "Smoke-Alpha \"Dash\" O'Malley",
       "present_at_start": true,
       "present_at_end": true,
       "joined_after_start": false,

@@ -16,7 +16,7 @@
   "players": [
     {
       "player_uid": "76561198000000000",
-      "name": "Example Present Player",
+      "name": "Example-Present \"Quoted\" Player",
       "side": "WEST",
       "group": "Alpha 1-1",
       "role": "Rifleman",
@@ -48,7 +48,7 @@
   "attendance_records": [
     {
       "player_uid": "76561198000000000",
-      "name": "Example Present Player",
+      "name": "Example-Present \"Quoted\" Player",
       "present_at_start": true,
       "present_at_end": true,
       "joined_after_start": false,
@@ -83,7 +83,7 @@
     },
     {
       "player_uid": "76561198000000001",
-      "name": "Disconnected Player",
+      "name": "Disconnected O'Player - Reserve",
       "present_at_start": true,
       "present_at_end": false,
       "joined_after_start": false,
