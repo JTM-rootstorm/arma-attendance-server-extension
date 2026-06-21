@@ -105,6 +105,9 @@ jobs:
       - name: Build
         run: cmake --build build/extension-windows --config Release
 
+      - name: Verify static Windows DLL dependencies
+        run: ./tools/verify-windows-dll-static.ps1 -SearchRoot build/extension-windows
+
       - name: Smoke test
         run: ctest --test-dir build/extension-windows -C Release --output-on-failure
 

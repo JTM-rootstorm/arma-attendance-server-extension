@@ -9,6 +9,7 @@ Phase 0 CI proves three things without private key material:
 - Linux artifacts do not depend on server-provided `libcurl`, `libstdc++`, or `libgcc_s`.
 - Linux artifacts are built in an Ubuntu 20.04 container and audited to avoid requiring GLIBC newer than 2.31.
 - Windows artifacts are built with the static vcpkg triplet and static MSVC runtime so the Workshop server package does not need extra curl, TLS, or runtime DLLs beside `tcwa3_stats_tracker_x64.dll`.
+- Windows artifacts are checked with `tools/verify-windows-dll-static.ps1`, which fails CI if `dumpbin /dependents` shows curl, TLS, compression, or MSVC runtime DLL dependencies.
 
 CI preview artifacts are intentionally unsigned. Trusted local signing uses `hemtt release --no-archive`, which creates signed PBOs under `.hemttout/release` without copying private keys into the repo.
 
@@ -102,3 +103,11 @@ Operation start and finish submissions use a local NDJSON queue when enabled. Th
 ## Windows Load Diagnostics
 
 If Windows logs `Call extension 'tcwa3_stats_tracker' could not be loaded: The specified module could not be found`, confirm the server Workshop package was assembled from a CI artifact built after the static Windows packaging change. That message usually means Windows found `tcwa3_stats_tracker_x64.dll` but could not load one of its dependent DLLs. The intended release artifact should be self-contained and should not require extra vcpkg, curl, OpenSSL, zlib, or MSVC runtime DLLs in the server mod folder.
+
+The Windows CI lane enforces this by running:
+
+```powershell
+./tools/verify-windows-dll-static.ps1 -SearchRoot build/extension-windows
+```
+
+The verifier allows normal Windows system DLLs, but rejects dependencies such as `libcurl*.dll`, `libssl*.dll`, `libcrypto*.dll`, `zlib*.dll`, `zstd*.dll`, `brotli*.dll`, `nghttp2*.dll`, `msvcp*.dll`, and `vcruntime*.dll`.
