@@ -79,6 +79,37 @@ def validate_registration(root: Path) -> bool:
     return ok
 
 
+def validate_xeh_prep_compile_shape(root: Path) -> bool:
+    xeh_prep = read(root / "addons" / "main" / "XEH_PREP.hpp")
+    ok = True
+
+    if "compileScript" in xeh_prep:
+        ok = bad("XEH_PREP must pass function file paths to CBA_fnc_compileFunction, not compiled code") and ok
+
+    compile_lines = [
+        line.strip()
+        for line in xeh_prep.splitlines()
+        if "CBA_fnc_compileFunction" in line
+    ]
+    if not compile_lines:
+        ok = bad("XEH_PREP has no CBA_fnc_compileFunction entries") and ok
+
+    for line in compile_lines:
+        match = re.match(
+            r'^\["\\x\\tcwa3_stats_tracker\\addons\\main\\functions\\fnc_(\w+)\.sqf",\s*QFUNC\((\w+)\)\]\s+call\s+CBA_fnc_compileFunction;$',
+            line,
+        )
+        if not match:
+            ok = bad(f"Malformed XEH_PREP compile entry: {line}") and ok
+            continue
+        if match.group(1) != match.group(2):
+            ok = bad(f"XEH_PREP compile entry path/name mismatch: {line}") and ok
+
+    if ok:
+        print("[OK] XEH_PREP compile entries pass file paths to CBA")
+    return ok
+
+
 def validate_xeh_bootstrap(root: Path) -> bool:
     config = read(root / "addons" / "main" / "config.cpp")
     preinit = read(root / "addons" / "main" / "XEH_preInit.sqf")
@@ -201,6 +232,7 @@ def main(argv: list[str]) -> int:
     root = Path(argv[1]) if len(argv) > 1 else Path.cwd()
     checks = (
         validate_registration(root),
+        validate_xeh_prep_compile_shape(root),
         validate_xeh_bootstrap(root),
         validate_settings(root),
         validate_automation_calls(root),
