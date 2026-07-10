@@ -116,4 +116,10 @@ The Windows CI lane enforces this by running:
 ./tools/verify-windows-dll-static.ps1 -SearchRoot build/extension-windows
 ```
 
-The verifier allows normal Windows system DLLs, but rejects dependencies such as `libcurl*.dll`, `libssl*.dll`, `libcrypto*.dll`, `zlib*.dll`, `zstd*.dll`, `brotli*.dll`, `nghttp2*.dll`, `msvcp*.dll`, and `vcruntime*.dll`.
+The verifier allows normal Windows system DLLs, but rejects dependencies such as `libcurl*.dll`, `libssl*.dll`, `libcrypto*.dll`, `zlib*.dll`, `zstd*.dll`, `brotli*.dll`, `nghttp2*.dll`, `msvcp*.dll`, and `vcruntime*.dll`. CI also loads the exact `build/extension-windows/Release/tcwa3_stats_tracker_x64.dll` and resolves all three undecorated Arma exports.
+
+Dependency updates are deliberate: change `VCPKG_COMMIT` and `extension/vcpkg-configuration.json` together to a verified vcpkg release commit, then rebuild both platforms. When updating HEMTT, download the official release asset, calculate its SHA-256, and update `HEMTT_VERSION` and `HEMTT_LINUX_X64_SHA256` together.
+
+Normal assembly requires both Linux aliases, the exact Windows DLL, both install README formats, addon PBOs, example configs, public signing key, and complete verified checksums. Unsigned CI preview mode is explicit. Linux-only development packages require `TCWA3_ALLOW_LINUX_ONLY_PACKAGE=1` and are never release-complete.
+
+Queue persistence uses atomic replacement, an in-process lock, bounded flushing, retry backoff, a dead-letter file, and a successful-result journal. Each server process must use a distinct writable queue path. These files may contain player data but never API bearer tokens.

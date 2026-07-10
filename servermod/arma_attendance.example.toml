@@ -9,6 +9,8 @@ server_key = "main-arma-linux-01"
 base_url = "https://stats.example.com"
 api_token = "aat_arma_server_REPLACE_WITH_REAL_TOKEN"
 timeout_ms = 5000
+connect_timeout_ms = 1000
+max_response_bytes = 1048576
 verify_tls = true
 
 [logging]
@@ -18,4 +20,7 @@ level = "info"
 enabled = true
 queue_file = "arma_attendance_queue.ndjson"
 queue_sent_file = "arma_attendance_queue.sent.ndjson"
+dead_letter_file = "arma_attendance_queue.dead.ndjson"
+results_file = "arma_attendance_queue.results.ndjson"
 max_attempts = 25
+flush_budget = 3

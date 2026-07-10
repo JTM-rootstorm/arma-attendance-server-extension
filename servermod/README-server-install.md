@@ -49,6 +49,10 @@ Queue files default beside the loaded extension binary. Relative queue paths in 
 ```text
 @tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.ndjson
 @tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.sent.ndjson
+@tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.dead.ndjson
+@tcwa3_stats_tracker_server/tcwa3_stats_tracker_queue.results.ndjson
 ```
+
+Give each server process its own writable queue paths. Queue payloads may contain player data, but bearer tokens are never persisted. Inspect `queue_status` and `queue_dead_status`; retain dead-letter files for diagnosis before manual recovery.
 
 Queue files must not contain bearer tokens.
