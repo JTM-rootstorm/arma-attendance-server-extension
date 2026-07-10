@@ -12,10 +12,21 @@ namespace {
 
 std::once_flag g_curl_init_once;
 
+struct ResponseBuffer {
+    std::string body;
+    size_t maximum{};
+    bool overflow{false};
+};
+
 size_t WriteBody(char* data, size_t size, size_t nmemb, void* userdata) {
-    auto* body = static_cast<std::string*>(userdata);
-    body->append(data, size * nmemb);
-    return size * nmemb;
+    auto* response = static_cast<ResponseBuffer*>(userdata);
+    const auto bytes = size * nmemb;
+    if (bytes > response->maximum - std::min(response->maximum, response->body.size())) {
+        response->overflow = true;
+        return 0;
+    }
+    response->body.append(data, bytes);
+    return bytes;
 }
 
 HttpResponse Perform(std::string_view method, std::string_view path, std::string_view body, const Config& config) {
@@ -30,7 +41,7 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
         return HttpResponse{false, 0, {}, "Failed to initialize libcurl."};
     }
 
-    std::string response_body;
+    ResponseBuffer response{{}, config.max_response_bytes, false};
     std::string url = config.base_url;
     if (!path.empty() && path.front() != '/') {
         url += '/';
@@ -56,8 +67,11 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteBody);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_body);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, static_cast<long>(config.timeout.count()));
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, static_cast<long>(config.connect_timeout.count()));
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "TCWA3-Stats-Tracker/0.1.0");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, config.verify_tls ? 1L : 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, config.verify_tls ? 2L : 0L);
@@ -70,7 +84,9 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
     std::string error;
-    if (code != CURLE_OK) {
+    if (response.overflow) {
+        error = "HTTP response exceeded configured maximum size.";
+    } else if (code != CURLE_OK) {
         error = curl_easy_strerror(code);
     }
 
@@ -79,7 +95,7 @@ HttpResponse Perform(std::string_view method, std::string_view path, std::string
     }
     curl_easy_cleanup(curl);
 
-    return HttpResponse{code == CURLE_OK && status >= 200 && status < 300, status, response_body, error};
+    return HttpResponse{code == CURLE_OK && !response.overflow && status >= 200 && status < 300, status, response.body, error};
 }
 
 } // namespace

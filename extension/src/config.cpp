@@ -1,16 +1,12 @@
 #include "arma_attendance/config.hpp"
-
 #include "arma_attendance/json.hpp"
 
 #include <algorithm>
-#include <array>
-#include <cctype>
 #include <cstdlib>
-#include <fstream>
 #include <mutex>
 #include <sstream>
-#include <string>
-#include <string_view>
+#include <vector>
+#include <toml++/toml.hpp>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -20,298 +16,124 @@
 
 namespace arma_attendance {
 namespace {
-
 std::mutex g_config_mutex;
 Config g_config;
 
-std::string Trim(std::string value) {
-    auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
-    value.erase(value.begin(), std::find_if(value.begin(), value.end(), not_space));
-    value.erase(std::find_if(value.rbegin(), value.rend(), not_space).base(), value.end());
-    return value;
-}
-
-std::string Unquote(std::string value) {
-    value = Trim(std::move(value));
-    if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
-        return value.substr(1, value.size() - 2);
-    }
-    return value;
-}
-
-std::optional<std::string> GetEnv(std::string_view name) {
-    if (const char* value = std::getenv(std::string{name}.c_str())) {
-        if (*value != '\0') {
-            return std::string{value};
-        }
-    }
+std::optional<std::string> Env(std::string_view name) {
+    if (const char* value = std::getenv(std::string{name}.c_str()); value && *value) return std::string{value};
     return std::nullopt;
 }
 
-std::filesystem::path ExtensionModulePath() {
+std::filesystem::path ModulePath() {
 #if defined(_WIN32)
-    HMODULE module = nullptr;
-    if (!GetModuleHandleExA(
-            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-            reinterpret_cast<LPCSTR>(&ExtensionModulePath),
-            &module)) {
-        return {};
+    HMODULE module{};
+    if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                            reinterpret_cast<LPCWSTR>(&ModulePath), &module)) return {};
+    std::vector<wchar_t> buffer(512);
+    for (;;) {
+        const DWORD size = GetModuleFileNameW(module, buffer.data(), static_cast<DWORD>(buffer.size()));
+        if (!size) return {};
+        if (size < buffer.size() - 1) return std::filesystem::path{std::wstring_view{buffer.data(), size}};
+        buffer.resize(buffer.size() * 2);
     }
-
-    std::array<char, MAX_PATH> buffer{};
-    const DWORD size = GetModuleFileNameA(module, buffer.data(), static_cast<DWORD>(buffer.size()));
-    if (size == 0 || size >= buffer.size()) {
-        return {};
-    }
-    return std::filesystem::path{buffer.data()};
 #else
     Dl_info info{};
-    if (dladdr(reinterpret_cast<void*>(&ExtensionModulePath), &info) == 0 || info.dli_fname == nullptr) {
-        return {};
-    }
-    return std::filesystem::path{info.dli_fname};
+    if (!dladdr(reinterpret_cast<void*>(&ModulePath), &info) || !info.dli_fname) return {};
+    return info.dli_fname;
 #endif
 }
 
-std::optional<std::filesystem::path> ExtensionModuleDirectory() {
-    const auto module_path = ExtensionModulePath();
-    if (module_path.empty() || !module_path.has_parent_path()) {
-        return std::nullopt;
-    }
-    return std::filesystem::absolute(module_path).parent_path();
-}
-
-std::optional<bool> ParseBool(std::string value) {
-    std::ranges::transform(value, value.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
-    if (value == "true" || value == "1" || value == "yes") {
-        return true;
-    }
-    if (value == "false" || value == "0" || value == "no") {
-        return false;
-    }
-    return std::nullopt;
-}
-
-void ApplyEnv(Config& config) {
-    if (auto value = GetEnv("AASE_BASE_URL")) {
-        config.base_url = *value;
-    }
-    if (auto value = GetEnv("AASE_API_TOKEN")) {
-        config.api_token = *value;
-    }
-    if (auto value = GetEnv("AASE_SERVER_KEY")) {
-        config.server_key = *value;
-    }
-    if (auto value = GetEnv("AASE_TIMEOUT_MS")) {
-        try {
-            const auto timeout = std::clamp(std::stoi(*value), 1, 10000);
-            config.timeout = std::chrono::milliseconds{timeout};
-        } catch (...) {
-        }
-    }
-    if (auto value = GetEnv("AASE_VERIFY_TLS")) {
-        if (auto parsed = ParseBool(*value)) {
-            config.verify_tls = *parsed;
-        }
-    }
-    if (auto value = GetEnv("AASE_QUEUE_ENABLED")) {
-        if (auto parsed = ParseBool(*value)) {
-            config.queue_enabled = *parsed;
-        }
-    }
-    if (auto value = GetEnv("AASE_QUEUE_FILE")) {
-        config.queue_file = *value;
-    }
-    if (auto value = GetEnv("AASE_QUEUE_SENT_FILE")) {
-        config.queue_sent_file = *value;
-    }
-}
-
-void ApplyTomlFile(Config& config, const std::filesystem::path& path) {
-    std::ifstream input{path};
-    if (!input) {
-        return;
-    }
-
-    std::string section;
-    std::string line;
-    while (std::getline(input, line)) {
-        const auto comment = line.find('#');
-        if (comment != std::string::npos) {
-            line.erase(comment);
-        }
-
-        line = Trim(std::move(line));
-        if (line.empty()) {
-            continue;
-        }
-
-        if (line.front() == '[' && line.back() == ']') {
-            section = Trim(line.substr(1, line.size() - 2));
-            continue;
-        }
-
-        const auto equals = line.find('=');
-        if (equals == std::string::npos) {
-            continue;
-        }
-
-        const auto key = Trim(line.substr(0, equals));
-        const auto value = Unquote(line.substr(equals + 1));
-        if (section == "server" && key == "server_key") {
-            config.server_key = value;
-        } else if (section == "http" && key == "base_url") {
-            config.base_url = value;
-        } else if (section == "http" && key == "api_token") {
-            config.api_token = value;
-        } else if (section == "http" && key == "timeout_ms") {
-            try {
-                const auto timeout = std::clamp(std::stoi(value), 1, 10000);
-                config.timeout = std::chrono::milliseconds{timeout};
-            } catch (...) {
-            }
-        } else if (section == "http" && key == "verify_tls") {
-            if (auto parsed = ParseBool(value)) {
-                config.verify_tls = *parsed;
-            }
-        } else if (section == "queue" && key == "enabled") {
-            if (auto parsed = ParseBool(value)) {
-                config.queue_enabled = *parsed;
-            }
-        } else if (section == "queue" && key == "queue_file") {
-            config.queue_file = value;
-        } else if (section == "queue" && (key == "queue_sent_file" || key == "sent_file")) {
-            config.queue_sent_file = value;
-        } else if (section == "queue" && key == "max_attempts") {
-            try {
-                config.queue_max_attempts = std::clamp(std::stoi(value), 1, 1000);
-            } catch (...) {
-            }
-        }
-    }
-}
-
 std::filesystem::path ConfigPath() {
-    if (const auto directory = ExtensionModuleDirectory()) {
-        const auto tcwa3_path = *directory / "tcwa3_stats_tracker.toml";
-        if (std::filesystem::exists(tcwa3_path)) {
-            return tcwa3_path;
-        }
-
-        const auto legacy_path = *directory / "arma_attendance.toml";
-        if (std::filesystem::exists(legacy_path)) {
-            return legacy_path;
-        }
+    if (auto value = Env("TCWA3_STATS_CONFIG_PATH")) return *value;
+    if (auto value = Env("AASE_CONFIG_PATH")) return *value;
+    const auto directory = ModulePath().parent_path();
+    for (const auto& name : {"tcwa3_stats_tracker.toml", "arma_attendance.toml"}) {
+        const auto candidate = directory / name;
+        if (std::filesystem::exists(candidate)) return candidate;
     }
-
-    if (auto value = GetEnv("TCWA3_STATS_CONFIG_PATH")) {
-        return std::filesystem::path{*value};
-    }
-
-    if (auto value = GetEnv("AASE_CONFIG_PATH")) {
-        return std::filesystem::path{*value};
-    }
-
-    if (const auto directory = ExtensionModuleDirectory()) {
-        return *directory / "tcwa3_stats_tracker.toml";
-    }
-
-    const auto current_tcwa3_path = std::filesystem::current_path() / "tcwa3_stats_tracker.toml";
-    if (std::filesystem::exists(current_tcwa3_path)) {
-        return current_tcwa3_path;
-    }
-    return std::filesystem::current_path() / "arma_attendance.toml";
+    return directory / "tcwa3_stats_tracker.toml";
 }
 
-std::filesystem::path QueueBaseDirectory(const std::filesystem::path& source_path) {
-    if (const auto directory = ExtensionModuleDirectory()) {
-        return *directory;
-    }
-    if (!source_path.empty() && source_path.has_parent_path()) {
-        return source_path.parent_path();
-    }
-    return std::filesystem::current_path();
+template <typename T> void Assign(const toml::table& table, std::string_view section, std::string_view key, T& target) {
+    if (auto value = table[section][key].value<T>()) target = *value;
 }
 
-std::filesystem::path ResolveRuntimePath(const std::filesystem::path& path, const std::filesystem::path& base) {
-    if (path.empty() || path.is_absolute()) {
-        return path;
+void ApplyToml(Config& c, const std::filesystem::path& path, std::string& warning) {
+    try {
+        const auto table = toml::parse_file(path.string());
+        Assign(table, "server", "server_key", c.server_key);
+        Assign(table, "http", "base_url", c.base_url);
+        Assign(table, "http", "api_token", c.api_token);
+        Assign(table, "http", "verify_tls", c.verify_tls);
+        Assign(table, "queue", "enabled", c.queue_enabled);
+        std::string value;
+        if (auto v = table["queue"]["queue_file"].value<std::string>()) c.queue_file = *v;
+        if (auto v = table["queue"]["queue_sent_file"].value<std::string>()) c.queue_sent_file = *v;
+        if (auto v = table["queue"]["sent_file"].value<std::string>()) c.queue_sent_file = *v;
+        if (auto v = table["queue"]["dead_letter_file"].value<std::string>()) c.queue_dead_letter_file = *v;
+        if (auto v = table["queue"]["results_file"].value<std::string>()) c.queue_results_file = *v;
+        if (auto v = table["http"]["timeout_ms"].value<int64_t>()) c.timeout = std::chrono::milliseconds{std::clamp<int64_t>(*v, 1, 10000)};
+        if (auto v = table["http"]["connect_timeout_ms"].value<int64_t>()) c.connect_timeout = std::chrono::milliseconds{std::clamp<int64_t>(*v, 1, 10000)};
+        if (auto v = table["http"]["max_response_bytes"].value<int64_t>()) c.max_response_bytes = static_cast<size_t>(std::clamp<int64_t>(*v, 1024, 16 * 1024 * 1024));
+        if (auto v = table["queue"]["max_attempts"].value<int64_t>()) c.queue_max_attempts = static_cast<int>(std::clamp<int64_t>(*v, 1, 1000));
+        if (auto v = table["queue"]["flush_budget"].value<int64_t>()) c.queue_flush_budget = static_cast<int>(std::clamp<int64_t>(*v, 1, 25));
+    } catch (const toml::parse_error&) {
+        warning = "config_parse_failed: invalid TOML; values were not loaded";
     }
-    return base / path;
 }
 
-void ResolveRuntimePaths(Config& config) {
-    const auto base = QueueBaseDirectory(config.source_path);
-    config.queue_file = ResolveRuntimePath(config.queue_file, base);
-    config.queue_sent_file = ResolveRuntimePath(config.queue_sent_file, base);
+void ApplyEnv(Config& c, std::string& warning) {
+    auto text = [&](const char* name, auto& target) { if (auto v = Env(name)) target = *v; };
+    text("AASE_BASE_URL", c.base_url); text("AASE_API_TOKEN", c.api_token); text("AASE_SERVER_KEY", c.server_key);
+    if (auto v = Env("AASE_QUEUE_FILE")) c.queue_file = *v;
+    if (auto v = Env("AASE_QUEUE_SENT_FILE")) c.queue_sent_file = *v;
+    if (auto v = Env("AASE_QUEUE_DEAD_LETTER_FILE")) c.queue_dead_letter_file = *v;
+    if (auto v = Env("AASE_QUEUE_RESULTS_FILE")) c.queue_results_file = *v;
+    auto integer = [&](const char* name, auto minimum, auto maximum, auto setter) {
+        if (auto v = Env(name)) try { setter(std::clamp(std::stoll(*v), static_cast<long long>(minimum), static_cast<long long>(maximum))); }
+        catch (...) { warning += std::string{warning.empty() ? "" : "; "} + name + " is invalid"; }
+    };
+    integer("AASE_TIMEOUT_MS", 1, 10000, [&](auto v){ c.timeout = std::chrono::milliseconds{v}; });
+    integer("AASE_CONNECT_TIMEOUT_MS", 1, 10000, [&](auto v){ c.connect_timeout = std::chrono::milliseconds{v}; });
+    integer("AASE_MAX_RESPONSE_BYTES", 1024, 16 * 1024 * 1024, [&](auto v){ c.max_response_bytes = static_cast<size_t>(v); });
+    auto boolean = [&](const char* name, bool& target) { if (auto v = Env(name)) { if (*v == "true" || *v == "1") target = true; else if (*v == "false" || *v == "0") target = false; else warning += std::string{warning.empty() ? "" : "; "} + name + " is invalid"; }};
+    boolean("AASE_VERIFY_TLS", c.verify_tls); boolean("AASE_QUEUE_ENABLED", c.queue_enabled);
 }
 
-std::string TokenPreview(const std::string& token) {
-    if (token.empty()) {
-        return "";
-    }
-    if (token.size() < 8) {
-        return "redacted";
-    }
-    return token.substr(0, 4) + "..." + token.substr(token.size() - 4);
+void Resolve(Config& c) {
+    auto base = ModulePath().parent_path();
+    if (base.empty()) base = c.source_path.parent_path();
+    auto resolve = [&](std::filesystem::path& path) { if (!path.empty() && path.is_relative()) path = base / path; };
+    resolve(c.queue_file); resolve(c.queue_sent_file); resolve(c.queue_dead_letter_file); resolve(c.queue_results_file);
 }
-
-} // namespace
+}
 
 ConfigLoadResult LoadConfig() {
     Config config;
+    std::string warning;
     const auto path = ConfigPath();
-    if (std::filesystem::exists(path)) {
-        ApplyTomlFile(config, path);
-        config.source_path = path;
-    }
-    ApplyEnv(config);
-    ResolveRuntimePaths(config);
-
-    if (config.base_url.ends_with('/')) {
-        config.base_url.pop_back();
-    }
-
-    std::lock_guard lock{g_config_mutex};
-    g_config = config;
-    return ConfigLoadResult{config, std::nullopt};
+    if (std::filesystem::exists(path)) { ApplyToml(config, path, warning); config.source_path = path; }
+    ApplyEnv(config, warning); Resolve(config);
+    if (config.base_url.ends_with('/')) config.base_url.pop_back();
+    std::lock_guard lock{g_config_mutex}; g_config = config;
+    return {config, warning.empty() ? std::nullopt : std::optional<std::string>{warning}};
 }
-
-ConfigLoadResult ReloadConfig() {
-    return LoadConfig();
-}
-
+ConfigLoadResult ReloadConfig() { return LoadConfig(); }
 Config CurrentConfig() {
-    {
-        std::lock_guard lock{g_config_mutex};
-        if (!g_config.base_url.empty() || !g_config.api_token.empty()) {
-            return g_config;
-        }
-    }
-
+    { std::lock_guard lock{g_config_mutex}; if (!g_config.base_url.empty() || !g_config.api_token.empty()) return g_config; }
     return LoadConfig().config;
 }
 
-std::string RedactedConfigJson(const Config& config) {
-    std::ostringstream output;
-    output << "{\"ok\":true,\"command\":\"config\""
-           << ",\"server_key\":" << JsonString(config.server_key)
-           << ",\"base_url\":" << JsonString(config.base_url)
-           << ",\"timeout_ms\":" << config.timeout.count()
-           << ",\"verify_tls\":" << (config.verify_tls ? "true" : "false")
-           << ",\"queue_enabled\":" << (config.queue_enabled ? "true" : "false")
-           << ",\"queue_file\":" << JsonString(config.queue_file.string())
-           << ",\"queue_sent_file\":" << JsonString(config.queue_sent_file.string())
-           << ",\"queue_max_attempts\":" << config.queue_max_attempts
-           << ",\"api_token_present\":" << (!config.api_token.empty() ? "true" : "false");
-    if (!config.api_token.empty()) {
-        output << ",\"api_token_preview\":" << JsonString(TokenPreview(config.api_token));
-    }
-    if (!config.source_path.empty()) {
-        output << ",\"source_path\":" << JsonString(config.source_path.string());
-    }
-    output << "}";
-    return output.str();
+std::string RedactedConfigJson(const Config& c) {
+    std::ostringstream out;
+    out << "{\"ok\":true,\"command\":\"config\",\"server_key\":" << JsonString(c.server_key)
+        << ",\"base_url\":" << JsonString(c.base_url) << ",\"timeout_ms\":" << c.timeout.count()
+        << ",\"connect_timeout_ms\":" << c.connect_timeout.count() << ",\"verify_tls\":" << (c.verify_tls ? "true" : "false")
+        << ",\"queue_enabled\":" << (c.queue_enabled ? "true" : "false") << ",\"queue_file\":" << JsonString(c.queue_file.string())
+        << ",\"queue_sent_file\":" << JsonString(c.queue_sent_file.string()) << ",\"queue_dead_letter_file\":" << JsonString(c.queue_dead_letter_file.string())
+        << ",\"queue_results_file\":" << JsonString(c.queue_results_file.string()) << ",\"queue_max_attempts\":" << c.queue_max_attempts
+        << ",\"api_token_present\":" << (!c.api_token.empty() ? "true" : "false");
+    if (!c.source_path.empty()) out << ",\"source_path\":" << JsonString(c.source_path.string());
+    return out.str() + "}";
 }
-
 } // namespace arma_attendance
