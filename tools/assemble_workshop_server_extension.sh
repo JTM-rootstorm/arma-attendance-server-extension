@@ -10,8 +10,8 @@ LINUX_SO="${TCWA3_LINUX_SO:-${BUILD_DIR}/tcwa3_stats_tracker.so}"
 LINUX_X64_SO="${TCWA3_LINUX_X64_SO:-${BUILD_DIR}/tcwa3_stats_tracker_x64.so}"
 WIN_DLL="${TCWA3_WIN_DLL:-}"
 
-if [[ -z "$WIN_DLL" ]]; then
-  WIN_DLL="$(find "$ROOT/build" "$ROOT/artifacts" -name 'tcwa3_stats_tracker_x64.dll' -print -quit 2>/dev/null || true)"
+if [[ -z "$WIN_DLL" && -f "$ROOT/build/extension-windows/Release/tcwa3_stats_tracker_x64.dll" ]]; then
+  WIN_DLL="$ROOT/build/extension-windows/Release/tcwa3_stats_tracker_x64.dll"
 fi
 
 rm -rf "$SERVERMOD"
@@ -49,8 +49,11 @@ find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey
 
 if [[ -n "$WIN_DLL" && -f "$WIN_DLL" ]]; then
   cp "$WIN_DLL" "$SERVERMOD/"
+elif [[ "${TCWA3_ALLOW_LINUX_ONLY_PACKAGE:-0}" == "1" ]]; then
+  echo "WARNING: LINUX-ONLY DEVELOPMENT PACKAGE; NOT A COMPLETE RELEASE." >&2
 else
-  echo "Windows DLL not found; assembled package will contain Linux server artifacts only." >&2
+  echo "Missing required Windows DLL. Set TCWA3_WIN_DLL to the exact Release artifact." >&2
+  exit 1
 fi
 
 cp "$ROOT/servermod/arma_attendance.example.toml" "$SERVERMOD/"
@@ -58,6 +61,7 @@ cp "$ROOT/servermod/tcwa3_stats_tracker.example.toml" "$SERVERMOD/"
 cp "$ROOT/servermod/mod.cpp" "$SERVERMOD/"
 cp "$ROOT/servermod/meta.cpp" "$SERVERMOD/"
 cp "$ROOT/servermod/README-server-install.md" "$SERVERMOD/"
+cp "$ROOT/servermod/README-server-install.txt" "$SERVERMOD/"
 cp "$ROOT/servermod/README-workshop-server-extension.md" "$SERVERMOD/"
 
 (
@@ -65,6 +69,9 @@ cp "$ROOT/servermod/README-workshop-server-extension.md" "$SERVERMOD/"
   find . -type f ! -name checksums.sha256 -print0 | sort -z | xargs -0 sha256sum > checksums.sha256
 )
 
-python3 "$ROOT/tools/audit_workshop_package.py" "$SERVERMOD"
+AUDIT_ARGS=()
+if [[ "${TCWA3_UNSIGNED_PREVIEW:-0}" == "1" ]]; then AUDIT_ARGS+=(--unsigned-preview); fi
+if [[ "${TCWA3_ALLOW_LINUX_ONLY_PACKAGE:-0}" == "1" ]]; then AUDIT_ARGS+=(--allow-linux-only); fi
+python3 "$ROOT/tools/audit_workshop_package.py" "${AUDIT_ARGS[@]}" "$SERVERMOD"
 
 echo "Server extension Workshop package assembled: $SERVERMOD"

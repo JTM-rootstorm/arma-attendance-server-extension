@@ -33,8 +33,8 @@ LINUX_SO="${TCWA3_LINUX_SO:-${BUILD_DIR}/tcwa3_stats_tracker.so}"
 LINUX_X64_SO="${TCWA3_LINUX_X64_SO:-${BUILD_DIR}/tcwa3_stats_tracker_x64.so}"
 WIN_DLL="${TCWA3_WIN_DLL:-}"
 
-if [[ -z "$WIN_DLL" ]]; then
-  WIN_DLL="$(find "$ROOT/build" "$ROOT/artifacts" -name 'tcwa3_stats_tracker_x64.dll' -print -quit 2>/dev/null || true)"
+if [[ -z "$WIN_DLL" && -f "$ROOT/build/extension-windows/Release/tcwa3_stats_tracker_x64.dll" ]]; then
+  WIN_DLL="$ROOT/build/extension-windows/Release/tcwa3_stats_tracker_x64.dll"
 fi
 
 if [[ ! -f "$LINUX_SO" ]]; then
@@ -54,10 +54,13 @@ find "$ROOT/servermod/.hemttout/release/keys" -maxdepth 1 -type f -name '*.bikey
 
 cp "$LINUX_SO" "$SERVERMOD/"
 cp "$LINUX_X64_SO" "$SERVERMOD/"
-if [[ -n "$WIN_DLL" ]]; then
+if [[ -n "$WIN_DLL" && -f "$WIN_DLL" ]]; then
   cp "$WIN_DLL" "$SERVERMOD/"
+elif [[ "${TCWA3_ALLOW_LINUX_ONLY_PACKAGE:-0}" == "1" ]]; then
+  echo "WARNING: LINUX-ONLY DEVELOPMENT PACKAGE; NOT A COMPLETE RELEASE." >&2
 else
-  echo "Windows DLL not found locally; continuing with Linux server artifacts only." >&2
+  echo "Missing required Windows Release DLL." >&2
+  exit 1
 fi
 
 cp "$ROOT/servermod/arma_attendance.example.toml" "$SERVERMOD/"
@@ -68,12 +71,12 @@ cp "$ROOT/servermod/README-server-install.md" "$SERVERMOD/"
 cp "$ROOT/servermod/README-server-install.txt" "$SERVERMOD/"
 cp "$ROOT/servermod/README-workshop-server-extension.md" "$SERVERMOD/"
 
-python3 "$ROOT/tools/audit_workshop_package.py" "$SERVERMOD"
-
 (
   cd "$OUT"
   find . -type f ! -name checksums.sha256 -print0 | sort -z | xargs -0 sha256sum > "$SERVERMOD/checksums.sha256"
 )
+
+python3 "$ROOT/tools/audit_workshop_package.py" "$SERVERMOD"
 
 (
   cd "$DIST"
