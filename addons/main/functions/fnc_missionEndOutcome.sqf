@@ -7,7 +7,6 @@ private _failureEndTypes = [
     "LOSER",
     "KILLED",
     "DEAD",
-    "DEATH",
     "FAIL",
     "FAILED",
     "FAILURE",
@@ -21,11 +20,6 @@ private _failureEndTypes = [
 } forEach _configuredFailures;
 
 private _failed = _upperEndType in _failureEndTypes;
-{
-    if ((_upperEndType find _x) >= 0) exitWith {
-        _failed = true;
-    };
-} forEach ["FAIL", "LOSER", "LOSE", "LOST", "KILL", "DEAD", "DEATH", "DEFEAT"];
 
 if (_failed) exitWith {"failed"};
 "success"

@@ -26,7 +26,7 @@ private _result = "";
 
 if ([_result] call _isExtensionFailure) then {
     [
-        "Extension lookup failed. Verify @tcwa3_stats_tracker_server is loaded with -serverMod and contains tcwa3_stats_tracker.so/tcwa3_stats_tracker_x64.so on Linux or tcwa3_stats_tracker_x64.dll on Windows.",
+        "Extension lookup failed. Verify @tcwa3_stats_tracker_server is loaded with the documented -mod launch shape (or server-only -serverMod deployment) and contains tcwa3_stats_tracker.so/tcwa3_stats_tracker_x64.so on Linux or tcwa3_stats_tracker_x64.dll on Windows.",
         "ERROR"
     ] call TCWA3_fnc_log;
 };

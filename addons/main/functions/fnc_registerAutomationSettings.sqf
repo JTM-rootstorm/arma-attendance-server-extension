@@ -83,9 +83,9 @@ private _global = 2;
 [
     "AASE_enableMissionEndFallback",
     "CHECKBOX",
-    ["Mission-end fallback", "Attempt to finish an active operation if the mission ends first."],
+    ["Mission-end protection", "Finish an active operation if the mission ends first. Active operations always register shutdown protection."],
     _category,
-    false,
+    true,
     _global,
     {},
     true

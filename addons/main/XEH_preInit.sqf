@@ -1,5 +1,7 @@
 #include "script_component.hpp"
-#include "XEH_PREP.hpp"
+
+// Functions are registered through CfgFunctions. Including XEH_PREP here
+// re-compiles final functions on mission load and spams the server RPT.
 
 [] call FUNC(registerAutomationSettings);
 
