@@ -53,10 +53,12 @@ if ($LASTEXITCODE -ne 0) {
 
 $dumpbinOutput | ForEach-Object { Write-Host $_ }
 $headers = & $dumpbin /headers $dll.FullName
-if ($headers -notmatch "8664 machine \(x64\)") { Write-Error "DLL is not AMD64." }
+$headersText = $headers -join "`n"
+if ($headersText -notmatch "8664 machine \(x64\)") { Write-Error "DLL is not AMD64." }
 $exports = & $dumpbin /exports $dll.FullName
+$exportsText = $exports -join "`n"
 foreach ($name in @("RVExtension", "RVExtensionArgs", "RVExtensionVersion")) {
-    if ($exports -notmatch "\s$name\s*$") { Write-Error "Missing undecorated export: $name" }
+    if ($exportsText -notmatch "(?m)\s$name\s*$") { Write-Error "Missing undecorated export: $name" }
 }
 
 $forbidden = @(
