@@ -42,7 +42,9 @@ def audit(root: Path, *, unsigned_preview: bool = False, allow_linux_only: bool 
         for line in checksum_file.read_text().splitlines():
             parts = line.split(maxsplit=1)
             if len(parts) != 2: findings.append("checksums.sha256: malformed entry"); continue
-            name = parts[1].lstrip("*").removeprefix("./")
+            name = parts[1].lstrip("*")
+            if name.startswith("./"):
+                name = name[2:]
             if name == "checksums.sha256": findings.append("checksums.sha256: must not include itself")
             entries[name] = parts[0]
         actual = {p.relative_to(root).as_posix() for p in files if p != checksum_file}
