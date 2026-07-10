@@ -16,11 +16,14 @@ if(AASE_STATIC_MSVC_RUNTIME)
 endif()
 
 find_package(CURL REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
 
 add_library(arma_attendance_core STATIC
     src/commands.cpp
     src/config.cpp
     src/http_client.cpp
+    src/queue_store.cpp
 )
 
 target_include_directories(arma_attendance_core
@@ -31,6 +34,8 @@ target_include_directories(arma_attendance_core
 target_link_libraries(arma_attendance_core
     PUBLIC
         CURL::libcurl
+        nlohmann_json::nlohmann_json
+        tomlplusplus::tomlplusplus
         ${CMAKE_DL_LIBS}
 )
 

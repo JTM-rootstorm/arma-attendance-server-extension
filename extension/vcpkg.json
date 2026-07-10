@@ -2,6 +2,8 @@
   "name": "arma-attendance-extension",
   "version-string": "0.1.0",
   "dependencies": [
-    "curl"
+    "curl",
+    "nlohmann-json",
+    "tomlplusplus"
   ]
 }

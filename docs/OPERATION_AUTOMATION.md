@@ -70,7 +70,7 @@ operation.
 
 ## Mission-End Fallback
 
-Mission-end fallback is disabled by default. When enabled, the server registers
+Mission-end protection is enabled by default. When an operation starts, the server registers
 one mission-ended handler and attempts a final operation finish only if an
 operation is still active:
 

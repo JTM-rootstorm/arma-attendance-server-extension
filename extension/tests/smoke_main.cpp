@@ -1,4 +1,5 @@
 #include "arma_attendance/commands.hpp"
+#include "arma_attendance/json.hpp"
 
 #include <cstdlib>
 #include <filesystem>
@@ -178,6 +179,27 @@ int main(int argc, char** argv) {
     const auto operation_start_replay = ExecuteArgs("operation_start", start_args);
     ok = ExpectOk("operation_start replay", operation_start_replay) && ok;
     ok = Contains(operation_start_replay, "\"idempotent\":true") && ok;
+
+    const std::vector<std::string> transport_names{
+        "Example \"Quoted\" Player", "C:\\Arma\\Profiles", "\\\\server\\share", "O'Brien - Dash",
+        "tab\tnewline\n", "Jörg 雪", "quotes \" and \\slashes\\", "", "ends-with-\\"};
+    int transport_index = 0;
+    for (const auto& name : transport_names) {
+        const auto request_id = "ci:start:transport:" + std::to_string(transport_index++);
+        const auto payload = std::string{"{\"request_id\":"} + arma_attendance::JsonString(request_id) +
+            ",\"payload_version\":1,\"players\":[{\"player_uid\":\"transport\",\"name\":" + arma_attendance::JsonString(name) + "}]}";
+        const auto result = ExecuteArgs("operation_start", {SqfStringLiteral(payload)});
+        if (!ExpectOk("SQF JSON transport", result)) ok = false;
+    }
+
+    const auto malformed = ExecuteArgs("operation_start", {SqfStringLiteral("{not-json}")});
+    if (!Contains(malformed, "invalid_json")) { std::cerr << "Malformed JSON was accepted: " << malformed << '\n'; ok = false; }
+    const auto wrong_root = ExecuteArgs("operation_start", {SqfStringLiteral("[]")});
+    if (!Contains(wrong_root, "invalid_json")) { std::cerr << "Array JSON root was accepted: " << wrong_root << '\n'; ok = false; }
+
+    const auto nested_key = ExecuteArgs("operation_start", {SqfStringLiteral(
+        "{\"request_id\":\"ci:start:nested\",\"payload_version\":1,\"source\":{\"server_key\":\"nested-wrong\"},\"players\":[]}")});
+    ok = ExpectOk("nested server_key", nested_key) && ok;
 
     const std::vector<std::string> override_start_args{
         SqfStringLiteral("{\"request_id\":\"ci:start:override\",\"server_key\":\"wrong-server\",\"payload_version\":1,\"players\":[]}")};

@@ -72,7 +72,7 @@ Automation is manual-only by default:
 ```sqf
 force AASE_autoStartMode = 0;
 force AASE_autoFinishMode = 0;
-force AASE_enableMissionEndFallback = false;
+force AASE_enableMissionEndFallback = true;
 ```
 
 Server operators can later enable named trigger or delayed start automation with
@@ -100,8 +100,14 @@ operation_attendance_get
 queue_status
 queue_flush
 queue_compact
+queue_dead_status
+queue_dead_compact
+queue_result_get
+queue_result_consume
 ```
 
 `operation_start` accepts one JSON object argument or generates a minimal smoke payload with configured `server_key`. `operation_finish` accepts an operation ID plus optional JSON payload, or one JSON object containing `operation_id`; missing finish payload `outcome` defaults to `"success"`. Responses are compact JSON wrappers with `ok`, `command`, `http_status`, and the web API response body when available.
 
-Operation start and finish submissions are written to a local NDJSON queue before send when queueing is enabled. `queue_flush` retries pending records, while `queue_status` reports pending and sent counts.
+Operation start and finish submissions are durably written to a local NDJSON queue before send when queueing is enabled. Processing is bounded per call and uses exponential backoff. Terminal and exhausted records move to the dead-letter file; successful queued results enter a result journal so SQF can reconcile delayed starts and finishes. Queue files contain operation/player payloads but never bearer tokens. Use one writable queue path per server process.
+
+The addon lifecycle is `inactive -> start_pending -> active -> finish_pending -> finished`, with `error` reserved for operator recovery. A queued start begins provisional local attendance immediately and later replaces its request ID with the accepted operation ID. A queued finish freezes one snapshot and request ID, blocks duplicate Zeus clicks, and clears local state only after reconciliation.

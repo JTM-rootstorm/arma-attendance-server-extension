@@ -1,730 +1,205 @@
 #include "arma_attendance/commands.hpp"
-
 #include "arma_attendance/config.hpp"
 #include "arma_attendance/http_client.hpp"
 #include "arma_attendance/json.hpp"
+#include "arma_attendance/queue_store.hpp"
 
-#include <exception>
 #include <chrono>
 #include <cctype>
-#include <filesystem>
-#include <fstream>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 #include <sstream>
-#include <string>
-#include <string_view>
 #include <vector>
 
 namespace arma_attendance {
 namespace {
+using json = nlohmann::json;
 
 std::string DecodeSqfStringLiteral(std::string_view value) {
     const auto first = value.find_first_not_of(" \t\r\n");
     const auto last = value.find_last_not_of(" \t\r\n");
-    if (first == std::string_view::npos || value[first] != '"' || value[last] != '"') {
-        return std::string{value};
-    }
-
+    if (first == std::string_view::npos || value[first] != '"' || value[last] != '"') return std::string{value};
     std::string decoded;
-    decoded.reserve(last - first);
-    for (auto index = first + 1; index < last; ++index) {
-        const char ch = value[index];
-        if (ch == '"' && index + 1 < last && value[index + 1] == '"') {
-            decoded.push_back('"');
-            ++index;
-            continue;
-        }
-        if (ch == '\\' && index + 1 < last && (value[index + 1] == '"' || value[index + 1] == '\\')) {
-            decoded.push_back(value[index + 1]);
-            ++index;
-            continue;
-        }
-        decoded.push_back(ch);
+    for (size_t i = first + 1; i < last; ++i) {
+        if (value[i] == '"' && i + 1 < last && value[i + 1] == '"') { decoded.push_back('"'); ++i; }
+        else decoded.push_back(value[i]);
     }
     return decoded;
 }
 
-bool LooksLikeJsonBody(std::string_view body) {
-    const auto first = body.find_first_not_of(" \t\r\n");
-    if (first == std::string_view::npos) {
-        return false;
-    }
-    const auto last = body.find_last_not_of(" \t\r\n");
-    const auto leading = body[first];
-    const auto trailing = body[last];
-    return (leading == '{' && trailing == '}') || (leading == '[' && trailing == ']');
+std::string RequestId(std::string_view server, std::string_view kind) {
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    return std::string{server} + ":" + std::string{kind} + ":" + std::to_string(ms);
 }
-
-bool LooksLikeJsonObject(std::string_view body) {
-    const auto first = body.find_first_not_of(" \t\r\n");
-    if (first == std::string_view::npos) {
-        return false;
-    }
-    const auto last = body.find_last_not_of(" \t\r\n");
-    return body[first] == '{' && body[last] == '}';
-}
-
-std::string ExtractJsonStringField(std::string_view body, std::string_view field) {
-    const std::string needle = "\"" + std::string{field} + "\"";
-    const auto key = body.find(needle);
-    if (key == std::string_view::npos) {
-        return {};
-    }
-
-    const auto colon = body.find(':', key + needle.size());
-    if (colon == std::string_view::npos) {
-        return {};
-    }
-
-    auto quote = body.find('"', colon + 1);
-    if (quote == std::string_view::npos) {
-        return {};
-    }
-
-    std::string value;
-    for (++quote; quote < body.size(); ++quote) {
-        const char ch = body[quote];
-        if (ch == '"' && (quote == 0 || body[quote - 1] != '\\')) {
-            return value;
-        }
-        value.push_back(ch);
-    }
-    return {};
-}
-
-bool JsonObjectHasField(std::string_view body, std::string_view field) {
-    return body.find("\"" + std::string{field} + "\"") != std::string_view::npos;
-}
-
-size_t JsonValueEnd(std::string_view body, size_t start) {
-    start = body.find_first_not_of(" \t\r\n", start);
-    if (start == std::string_view::npos) {
-        return std::string_view::npos;
-    }
-
-    const char leading = body[start];
-    if (leading == '"') {
-        bool escaped = false;
-        for (auto index = start + 1; index < body.size(); ++index) {
-            const char ch = body[index];
-            if (escaped) {
-                escaped = false;
-            } else if (ch == '\\') {
-                escaped = true;
-            } else if (ch == '"') {
-                return index + 1;
-            }
-        }
-        return std::string_view::npos;
-    }
-
-    if (leading == '{' || leading == '[') {
-        const char closing = leading == '{' ? '}' : ']';
-        int depth = 0;
-        bool in_string = false;
-        bool escaped = false;
-        for (auto index = start; index < body.size(); ++index) {
-            const char ch = body[index];
-            if (in_string) {
-                if (escaped) {
-                    escaped = false;
-                } else if (ch == '\\') {
-                    escaped = true;
-                } else if (ch == '"') {
-                    in_string = false;
-                }
-                continue;
-            }
-            if (ch == '"') {
-                in_string = true;
-            } else if (ch == leading) {
-                ++depth;
-            } else if (ch == closing) {
-                --depth;
-                if (depth == 0) {
-                    return index + 1;
-                }
-            }
-        }
-        return std::string_view::npos;
-    }
-
-    const auto end = body.find_first_of(",}", start);
-    return end == std::string_view::npos ? body.size() : end;
-}
-
-std::string AddJsonFieldIfMissing(std::string body, std::string_view field, std::string_view encoded_value) {
-    if (JsonObjectHasField(body, field)) {
-        return body;
-    }
-
-    const auto first = body.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos || body[first] != '{') {
-        return body;
-    }
-
-    auto insert_at = first + 1;
-    const bool has_existing_fields = body.find_first_not_of(" \t\r\n", insert_at) != body.find_last_not_of(" \t\r\n");
-    std::string field_text = "\"" + std::string{field} + "\":" + std::string{encoded_value};
-    if (has_existing_fields) {
-        field_text += ",";
-    }
-    body.insert(insert_at, field_text);
-    return body;
-}
-
-std::string SetJsonField(std::string body, std::string_view field, std::string_view encoded_value) {
-    const std::string needle = "\"" + std::string{field} + "\"";
-    const auto key = body.find(needle);
-    if (key == std::string::npos) {
-        return AddJsonFieldIfMissing(std::move(body), field, encoded_value);
-    }
-
-    const auto colon = body.find(':', key + needle.size());
-    if (colon == std::string::npos) {
-        return body;
-    }
-
-    const auto value_start = body.find_first_not_of(" \t\r\n", colon + 1);
-    const auto value_end = JsonValueEnd(body, value_start);
-    if (value_start == std::string::npos || value_end == std::string::npos) {
-        return body;
-    }
-
-    body.replace(value_start, value_end - value_start, encoded_value);
-    return body;
-}
-
-std::string MakeRequestId(std::string_view server_key, std::string_view kind) {
-    const auto now = std::chrono::system_clock::now().time_since_epoch();
-    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
-    return std::string{server_key} + ":" + std::string{kind} + ":" + std::to_string(millis);
-}
-
-std::string MinimalOperationPayload(const Config& config, std::string_view kind, std::string_view operation_id = {}) {
-    std::ostringstream body;
-    body << "{\"request_id\":" << JsonString(MakeRequestId(config.server_key, kind))
-         << ",\"server_key\":" << JsonString(config.server_key)
-         << ",\"payload_version\":1"
-         << ",\"source\":{\"kind\":\"arma3-extension\",\"extension_version\":" << JsonString(kExtensionVersion) << "}"
-         << ",\"mission\":{\"mission_uid\":" << JsonString(std::string{"native-smoke:"} + std::string{kind})
-         << ",\"mission_name\":" << JsonString("Native Smoke")
-         << ",\"world_name\":" << JsonString("VR") << "}"
-         << ",\"players\":[]";
-    if (!operation_id.empty()) {
-        body << ",\"operation_id\":" << JsonString(operation_id);
-    }
-    if (kind == "finish") {
-        body << ",\"outcome\":\"success\"";
-    }
-    body << "}";
-    return body.str();
-}
-
-std::string NormalizeOperationPayload(std::string body, const Config& config, std::string_view kind) {
-    body = SetJsonField(std::move(body), "server_key", JsonString(config.server_key));
-    body = AddJsonFieldIfMissing(std::move(body), "request_id", JsonString(MakeRequestId(config.server_key, kind)));
-    body = AddJsonFieldIfMissing(std::move(body), "payload_version", "1");
-    if (kind == "finish") {
-        body = AddJsonFieldIfMissing(std::move(body), "outcome", JsonString("success"));
-    }
-    return body;
-}
-
-struct QueueRecord {
-    std::string queue_id;
-    std::string command;
-    std::string method;
-    std::string path;
-    std::string request_id;
-    std::string body;
-    int attempts{0};
-};
-
-struct QueueFlushResult {
-    int attempted{0};
-    int sent{0};
-    int terminal_failed{0};
-    int remaining{0};
-    HttpResponse current_response;
-    bool has_current_response{false};
-    std::string last_error;
-};
-
-std::string HttpJson(std::string_view command, const HttpResponse& response);
+int64_t Now() { return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()); }
 
 std::string UrlEncode(std::string_view value) {
-    std::ostringstream encoded;
-    encoded << std::uppercase << std::hex;
-    for (const unsigned char ch : value) {
-        if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~') {
-            encoded << static_cast<char>(ch);
-        } else {
-            encoded << '%' << std::setw(2) << std::setfill('0') << static_cast<int>(ch);
-        }
-    }
-    return encoded.str();
+    std::ostringstream out; out << std::uppercase << std::hex;
+    for (unsigned char ch : value) if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~') out << ch;
+    else out << '%' << std::setw(2) << std::setfill('0') << static_cast<int>(ch);
+    return out.str();
 }
 
-std::string ExtractJsonObjectField(std::string_view body, std::string_view field) {
-    const std::string needle = "\"" + std::string{field} + "\"";
-    const auto key = body.find(needle);
-    if (key == std::string_view::npos) {
-        return {};
-    }
-    const auto colon = body.find(':', key + needle.size());
-    if (colon == std::string_view::npos) {
-        return {};
-    }
-    const auto object_start = body.find('{', colon + 1);
-    if (object_start == std::string_view::npos) {
-        return {};
-    }
-
-    int depth = 0;
-    bool in_string = false;
-    bool escaped = false;
-    for (auto index = object_start; index < body.size(); ++index) {
-        const char ch = body[index];
-        if (in_string) {
-            if (escaped) {
-                escaped = false;
-            } else if (ch == '\\') {
-                escaped = true;
-            } else if (ch == '"') {
-                in_string = false;
-            }
-            continue;
-        }
-        if (ch == '"') {
-            in_string = true;
-        } else if (ch == '{') {
-            ++depth;
-        } else if (ch == '}') {
-            --depth;
-            if (depth == 0) {
-                return std::string{body.substr(object_start, index - object_start + 1)};
-            }
-        }
-    }
-    return {};
+std::optional<json> ParseObject(std::string_view body) {
+    auto value = json::parse(body, nullptr, false);
+    if (value.is_discarded() || !value.is_object()) return std::nullopt;
+    return value;
 }
 
-int ExtractJsonIntField(std::string_view body, std::string_view field) {
-    const std::string needle = "\"" + std::string{field} + "\"";
-    const auto key = body.find(needle);
-    if (key == std::string_view::npos) {
-        return 0;
-    }
-    const auto colon = body.find(':', key + needle.size());
-    if (colon == std::string_view::npos) {
-        return 0;
-    }
-    const auto start = body.find_first_of("0123456789", colon + 1);
-    if (start == std::string_view::npos) {
-        return 0;
-    }
-    const auto end = body.find_first_not_of("0123456789", start);
-    try {
-        return std::stoi(std::string{body.substr(start, end == std::string_view::npos ? end : end - start)});
-    } catch (...) {
-        return 0;
-    }
+std::string Invalid(std::string_view command, std::string message = "Expected a compact JSON object argument.") {
+    return JsonError(command, "invalid_json", message);
 }
 
-std::string QueueRecordJson(const QueueRecord& record) {
-    std::ostringstream output;
-    output << "{\"queue_id\":" << JsonString(record.queue_id)
-           << ",\"attempts\":" << record.attempts
-           << ",\"command\":" << JsonString(record.command)
-           << ",\"method\":" << JsonString(record.method)
-           << ",\"path\":" << JsonString(record.path)
-           << ",\"request_id\":" << JsonString(record.request_id)
-           << ",\"body\":" << record.body
-           << "}";
-    return output.str();
+std::optional<json> Normalize(std::string_view body, const Config& config, std::string_view kind) {
+    auto parsed = ParseObject(body); if (!parsed) return std::nullopt;
+    auto has_string = [&](std::string_view key) { auto it = parsed->find(key); return it == parsed->end() || it->is_string(); };
+    auto version = parsed->find("payload_version");
+    if (!has_string("request_id") || (version != parsed->end() && !version->is_number_integer()) ||
+        (kind == "finish" && !has_string("outcome"))) return std::nullopt;
+    (*parsed)["server_key"] = config.server_key;
+    if (!parsed->contains("request_id")) (*parsed)["request_id"] = RequestId(config.server_key, kind);
+    if (!parsed->contains("payload_version")) (*parsed)["payload_version"] = 1;
+    if (kind == "finish" && !parsed->contains("outcome")) (*parsed)["outcome"] = "success";
+    return parsed;
 }
 
-QueueRecord MakeQueueRecord(std::string_view command, std::string path, std::string body) {
-    auto request_id = ExtractJsonStringField(body, "request_id");
-    if (request_id.empty()) {
-        request_id = MakeRequestId("queue", command);
-    }
-    return QueueRecord{
-        request_id,
-        std::string{command},
-        "POST",
-        std::move(path),
-        request_id,
-        std::move(body),
-        0,
-    };
+json Minimal(const Config& config, std::string_view kind, std::string_view operation_id = {}) {
+    json body{{"request_id", RequestId(config.server_key, kind)}, {"server_key", config.server_key}, {"payload_version", 1},
+              {"source", {{"kind", "arma3-extension"}, {"extension_version", kExtensionVersion}}},
+              {"mission", {{"mission_uid", "native-smoke:" + std::string{kind}}, {"mission_name", "Native Smoke"}, {"world_name", "VR"}}}, {"players", json::array()}};
+    if (!operation_id.empty()) body["operation_id"] = operation_id;
+    if (kind == "finish") body["outcome"] = "success";
+    return body;
 }
 
-std::string HttpErrorCode(const HttpResponse& response) {
-    auto code = ExtractJsonStringField(response.body, "code");
-    if (!code.empty()) {
-        return code;
+std::string HttpError(const HttpResponse& response) {
+    auto body = json::parse(response.body, nullptr, false);
+    if (body.is_object()) {
+        if (body.contains("code") && body["code"].is_string()) return body["code"];
+        if (body.contains("error") && body["error"].is_string()) return body["error"];
+        if (body.contains("error") && body["error"].is_object() && body["error"].value("code", "") != "") return body["error"]["code"];
     }
-    return ExtractJsonStringField(response.body, "error");
+    return response.error.empty() ? "HTTP " + std::to_string(response.status) : response.error;
 }
-
-bool IsTerminalHttpFailure(const HttpResponse& response) {
-    if (response.ok || response.status == 0) {
-        return false;
-    }
-    return response.status >= 400 && response.status < 500 && response.status != 408 && response.status != 429;
-}
-
-std::vector<QueueRecord> LoadQueueRecords(const std::filesystem::path& path) {
-    std::vector<QueueRecord> records;
-    std::ifstream input{path};
-    if (!input) {
-        return records;
-    }
-
-    std::string line;
-    while (std::getline(input, line)) {
-        if (line.empty()) {
-            continue;
-        }
-        QueueRecord record;
-        record.queue_id = ExtractJsonStringField(line, "queue_id");
-        record.command = ExtractJsonStringField(line, "command");
-        record.method = ExtractJsonStringField(line, "method");
-        record.path = ExtractJsonStringField(line, "path");
-        record.request_id = ExtractJsonStringField(line, "request_id");
-        record.body = ExtractJsonObjectField(line, "body");
-        record.attempts = ExtractJsonIntField(line, "attempts");
-        if (!record.queue_id.empty() && !record.path.empty() && !record.body.empty()) {
-            records.push_back(std::move(record));
-        }
-    }
-    return records;
-}
-
-void WriteQueueRecords(const std::filesystem::path& path, const std::vector<QueueRecord>& records) {
-    if (!path.parent_path().empty()) {
-        std::filesystem::create_directories(path.parent_path());
-    }
-    std::ofstream output{path, std::ios::trunc};
-    for (const auto& record : records) {
-        output << QueueRecordJson(record) << '\n';
-    }
-}
-
-void AppendQueueRecord(const std::filesystem::path& path, const QueueRecord& record) {
-    if (!path.parent_path().empty()) {
-        std::filesystem::create_directories(path.parent_path());
-    }
-    std::ofstream output{path, std::ios::app};
-    output << QueueRecordJson(record) << '\n';
-}
-
-QueueFlushResult FlushQueueInternal(const Config& config, std::string_view current_queue_id = {}) {
-    auto records = LoadQueueRecords(config.queue_file);
-    std::vector<QueueRecord> remaining;
-    QueueFlushResult result;
-
-    for (auto& record : records) {
-        ++result.attempted;
-        ++record.attempts;
-        const auto response = HttpPostJson(record.path, record.body, config);
-        if (record.queue_id == current_queue_id) {
-            result.current_response = response;
-            result.has_current_response = true;
-        }
-        if (response.ok) {
-            ++result.sent;
-            AppendQueueRecord(config.queue_sent_file, record);
-        } else if (IsTerminalHttpFailure(response)) {
-            ++result.terminal_failed;
-            const auto code = HttpErrorCode(response);
-            result.last_error = code.empty() ? "HTTP " + std::to_string(response.status) : code;
-        } else {
-            if (!response.error.empty()) {
-                result.last_error = response.error;
-            } else {
-                result.last_error = "HTTP " + std::to_string(response.status);
-            }
-            if (record.attempts < config.queue_max_attempts) {
-                remaining.push_back(std::move(record));
-            }
-        }
-    }
-
-    result.remaining = static_cast<int>(remaining.size());
-    WriteQueueRecords(config.queue_file, remaining);
-    return result;
-}
-
-int CountQueueLines(const std::filesystem::path& path) {
-    std::ifstream input{path};
-    int count = 0;
-    std::string line;
-    while (std::getline(input, line)) {
-        if (!line.empty()) {
-            ++count;
-        }
-    }
-    return count;
-}
-
-std::string QueueStatusJson(std::string_view command, const Config& config) {
-    std::ostringstream output;
-    output << "{\"ok\":true,\"command\":" << JsonString(command)
-           << ",\"queued_count\":" << CountQueueLines(config.queue_file)
-           << ",\"sent_count\":" << CountQueueLines(config.queue_sent_file)
-           << ",\"queue_file\":" << JsonString(config.queue_file.string())
-           << ",\"sent_file\":" << JsonString(config.queue_sent_file.string())
-           << "}";
-    return output.str();
-}
-
-std::string QueueFlushJson(std::string_view command, const QueueFlushResult& result) {
-    std::ostringstream output;
-    output << "{\"ok\":" << (result.remaining == 0 ? "true" : "false")
-           << ",\"command\":" << JsonString(command)
-           << ",\"attempted\":" << result.attempted
-           << ",\"sent\":" << result.sent
-           << ",\"terminal_failed\":" << result.terminal_failed
-           << ",\"remaining\":" << result.remaining;
-    if (!result.last_error.empty()) {
-        output << ",\"last_error\":" << JsonString(result.last_error);
-    }
-    output << "}";
-    return output.str();
-}
-
-std::string SendOperationWithQueue(std::string_view command, std::string path, std::string body, const Config& config) {
-    if (!config.queue_enabled) {
-        return HttpJson(command, HttpPostJson(path, body, config));
-    }
-
-    auto record = MakeQueueRecord(command, std::move(path), std::move(body));
-    const auto queue_id = record.queue_id;
-    AppendQueueRecord(config.queue_file, record);
-    const auto flush = FlushQueueInternal(config, queue_id);
-    if (flush.has_current_response && flush.current_response.ok) {
-        return HttpJson(command, flush.current_response);
-    }
-
-    if (flush.has_current_response && IsTerminalHttpFailure(flush.current_response)) {
-        auto response = HttpJson(command, flush.current_response);
-        const auto insert_at = response.find_last_of('}');
-        if (insert_at != std::string::npos) {
-            response.insert(insert_at, ",\"queued\":false,\"terminal\":true");
-        }
-        return response;
-    }
-
-    std::ostringstream output;
-    output << "{\"ok\":false,\"command\":" << JsonString(command)
-           << ",\"queued\":true"
-           << ",\"queue_id\":" << JsonString(queue_id)
-           << ",\"attempted\":" << flush.attempted
-           << ",\"sent\":" << flush.sent
-           << ",\"terminal_failed\":" << flush.terminal_failed
-           << ",\"remaining\":" << flush.remaining;
-    if (flush.has_current_response) {
-        output << ",\"http_status\":" << flush.current_response.status;
-        if (!flush.current_response.error.empty()) {
-            output << ",\"error\":{\"code\":\"http_request_failed\",\"message\":"
-                   << JsonString(flush.current_response.error) << "}";
-        }
-    }
-    output << "}";
-    return output.str();
-}
+bool Terminal(const HttpResponse& r) { return !r.ok && r.status >= 400 && r.status < 500 && r.status != 408 && r.status != 429; }
 
 std::string HttpJson(std::string_view command, const HttpResponse& response) {
-    if (!response.error.empty()) {
-        return JsonError(command, response.status == 0 ? "http_request_failed" : "http_status_not_ok", response.error);
+    json result{{"ok", response.ok}, {"command", command}, {"http_status", response.status}};
+    auto body = json::parse(response.body, nullptr, false);
+    if (!body.is_discarded()) result["body"] = body; else result["body_raw"] = response.body;
+    if (!response.error.empty()) result["error"] = {{"code", response.status ? "http_status_not_ok" : "http_request_failed"}, {"message", response.error}};
+    if (response.ok && command == "operation_start" && body.is_object() && body.value("ok", false) && body.value("accepted", false) &&
+        body.value("status", "") == "started" && body.contains("operation_id") && body["operation_id"].is_string() && !body["operation_id"].get<std::string>().empty())
+        result["operation_id"] = body["operation_id"];
+    return result.dump();
+}
+
+QueueStore Store(const Config& c) { return QueueStore{c.queue_file, c.queue_sent_file, c.queue_dead_letter_file, c.queue_results_file}; }
+json Dead(const json& record, std::string kind, const HttpResponse& response) {
+    json dead = record; dead["failure_kind"] = std::move(kind); dead["last_http_status"] = response.status;
+    dead["last_error_code"] = HttpError(response); dead["last_error_message"] = response.error; dead["failed_at"] = Now(); return dead;
+}
+
+struct FlushResult { int attempted{}, sent{}, terminal{}, exhausted{}, dead{}; size_t remaining{}; bool persistence_error{}; std::string last_error; std::optional<HttpResponse> current; };
+
+FlushResult Flush(const Config& config, std::string_view current = {}, bool force = false) {
+    auto store = Store(config); auto loaded = store.load_pending(); FlushResult result;
+    if (!loaded.ok) { result.persistence_error = true; result.last_error = loaded.error; return result; }
+    std::vector<json> remaining; const auto now = Now();
+    for (auto& record : loaded.records) {
+        if (result.attempted >= config.queue_flush_budget || (!force && record.value("next_attempt_at", int64_t{0}) > now)) { remaining.push_back(record); continue; }
+        ++result.attempted; record["attempts"] = record.value("attempts", 0) + 1; record["last_attempt_at"] = now;
+        const auto response = HttpPostJson(record.value("path", ""), record.value("body", json::object()).dump(), config);
+        if (record.value("queue_id", "") == current) result.current = response;
+        if (response.ok) {
+            if (!store.append_sent(record).ok) { remaining.push_back(record); result.persistence_error = true; continue; }
+            ++result.sent;
+            auto body = json::parse(response.body, nullptr, false);
+            json journal{{"queue_id", record.value("queue_id", "")}, {"request_id", record.value("request_id", "")},
+                         {"command", record.value("command", "")}, {"http_status", response.status}, {"completed_at", now}, {"response", body.is_discarded() ? json::object() : body}};
+            if (!store.append_result(journal).ok) result.persistence_error = true;
+        } else if (Terminal(response)) {
+            auto dead = Dead(record, "terminal_http", response);
+            if (store.append_dead_letter(dead).ok) { ++result.terminal; ++result.dead; } else { remaining.push_back(record); result.persistence_error = true; }
+            result.last_error = HttpError(response);
+        } else if (record.value("attempts", 0) >= config.queue_max_attempts) {
+            auto dead = Dead(record, "retry_exhausted", response);
+            if (store.append_dead_letter(dead).ok) { ++result.exhausted; ++result.dead; } else { remaining.push_back(record); result.persistence_error = true; }
+            result.last_error = HttpError(response);
+        } else {
+            static constexpr int delays[]{5, 15, 30, 60, 300, 900, 1800};
+            const auto attempt = std::min(record.value("attempts", 1) - 1, 6); record["next_attempt_at"] = now + delays[attempt]; remaining.push_back(record);
+            result.last_error = HttpError(response);
+        }
     }
-
-    const auto operation_id = ExtractJsonStringField(response.body, "operation_id");
-    std::ostringstream output;
-    output << "{\"ok\":" << (response.ok ? "true" : "false")
-           << ",\"command\":" << JsonString(command)
-           << ",\"http_status\":" << response.status;
-    if (!operation_id.empty()) {
-        output << ",\"operation_id\":" << JsonString(operation_id);
-    }
-    if (LooksLikeJsonBody(response.body)) {
-        output << ",\"body\":" << response.body;
-    } else {
-        output << ",\"body_raw\":" << JsonString(response.body);
-    }
-    output << "}";
-    return output.str();
+    if (auto replaced = store.replace_pending(remaining); !replaced.ok) { result.persistence_error = true; result.last_error = replaced.error; }
+    result.remaining = remaining.size(); return result;
 }
 
-std::string MissingConfig(std::string_view command, std::string_view name) {
-    return JsonError(command, "missing_config", std::string{name} + " is not configured.");
+json FlushJson(std::string_view command, const FlushResult& f) {
+    json out{{"ok", !f.persistence_error && !f.terminal && !f.exhausted && f.remaining == 0}, {"command", command}, {"attempted", f.attempted},
+             {"sent", f.sent}, {"terminal_failed", f.terminal}, {"exhausted", f.exhausted}, {"dead_lettered", f.dead}, {"remaining", f.remaining}};
+    if (!f.last_error.empty()) out["last_error"] = f.last_error; return out;
 }
 
-std::string MissingArg(std::string_view command, std::string_view name) {
-    return JsonError(command, "missing_argument", std::string{name} + " is required.");
+std::string SendQueued(std::string_view command, std::string path, const json& body, const Config& config) {
+    if (!config.queue_enabled) return HttpJson(command, HttpPostJson(path, body.dump(), config));
+    const auto request = body.value("request_id", RequestId("queue", command));
+    json record{{"queue_id", request}, {"request_id", request}, {"command", command}, {"method", "POST"}, {"path", path}, {"body", body},
+                {"attempts", 0}, {"last_attempt_at", 0}, {"next_attempt_at", 0}};
+    auto store = Store(config); auto saved = store.append_pending(record);
+    if (!saved.ok) return JsonError(command, "queue_persist_failed", saved.error);
+    auto flushed = Flush(config, request);
+    if (flushed.current && flushed.current->ok) return HttpJson(command, *flushed.current);
+    if (flushed.current && Terminal(*flushed.current)) { auto out = json::parse(HttpJson(command, *flushed.current)); out["queued"] = false; out["terminal"] = true; return out.dump(); }
+    auto out = FlushJson(command, flushed); out["ok"] = false; out["queued"] = true; out["queue_id"] = request; return out.dump();
 }
-
-std::string InvalidJson(std::string_view command) {
-    return JsonError(command, "invalid_json", "Expected a compact JSON object argument.");
 }
-
-} // namespace
 
 std::string ExecuteCommand(std::string_view command, std::span<const std::string> args) {
     try {
-        if (command == "version") {
-            return "{\"ok\":true,\"command\":\"version\",\"version\":" + JsonString(kExtensionVersion) + "}";
-        }
-
-        if (command == "reload_config") {
-            const auto loaded = ReloadConfig();
-            return "{\"ok\":true,\"command\":\"reload_config\",\"config\":" + RedactedConfigJson(loaded.config) + "}";
-        }
-
-        const Config config = CurrentConfig();
-
-        if (command == "config") {
-            return RedactedConfigJson(config);
-        }
-
-        if (command == "health") {
-            if (config.base_url.empty()) {
-                return MissingConfig(command, "AASE_BASE_URL");
-            }
-            return HttpJson(command, HttpGet("/health", config));
-        }
-
-        if (command == "poke") {
-            if (config.base_url.empty()) {
-                return MissingConfig(command, "AASE_BASE_URL");
-            }
-            if (config.api_token.empty()) {
-                return MissingConfig(command, "AASE_API_TOKEN");
-            }
-
-            const std::string message = args.empty() ? "hello from arma" : args.front();
-            const std::string body = "{\"message\":" + JsonString(message) +
-                                     ",\"server_key\":" + JsonString(config.server_key) + "}";
-            return HttpJson(command, HttpPostJson("/v1/debug/poke", body, config));
-        }
-
+        if (command == "version") return json{{"ok", true}, {"command", command}, {"version", kExtensionVersion}}.dump();
+        if (command == "reload_config") { auto loaded = ReloadConfig(); json out{{"ok", true}, {"command", command}, {"config", json::parse(RedactedConfigJson(loaded.config))}}; if (loaded.warning) out["warning"] = *loaded.warning; return out.dump(); }
+        const auto config = CurrentConfig();
+        if (command == "config") return RedactedConfigJson(config);
+        if (command == "health") return config.base_url.empty() ? JsonError(command, "missing_config", "AASE_BASE_URL is not configured.") : HttpJson(command, HttpGet("/health", config));
+        if (command == "poke") { if (config.base_url.empty() || config.api_token.empty()) return JsonError(command, "missing_config", "HTTP configuration is incomplete."); return HttpJson(command, HttpPostJson("/v1/debug/poke", json{{"message", args.empty() ? "hello from arma" : args.front()}, {"server_key", config.server_key}}.dump(), config)); }
         if (command == "operation_start") {
-            if (config.base_url.empty()) {
-                return MissingConfig(command, "AASE_BASE_URL");
-            }
-            if (config.api_token.empty()) {
-                return MissingConfig(command, "AASE_API_TOKEN");
-            }
-
-            std::string body = args.empty() ? MinimalOperationPayload(config, "start") : args.front();
-            if (!LooksLikeJsonObject(body)) {
-                return InvalidJson(command);
-            }
-            body = NormalizeOperationPayload(std::move(body), config, "start");
-            return SendOperationWithQueue(command, "/v1/operations/start", body, config);
+            auto body = args.empty() ? std::optional<json>{Minimal(config, "start")} : Normalize(args.front(), config, "start");
+            if (!body) return Invalid(command); return SendQueued(command, "/v1/operations/start", *body, config);
         }
-
         if (command == "operation_finish") {
-            if (config.base_url.empty()) {
-                return MissingConfig(command, "AASE_BASE_URL");
-            }
-            if (config.api_token.empty()) {
-                return MissingConfig(command, "AASE_API_TOKEN");
-            }
-
-            std::string operation_id;
-            std::string body;
-            if (args.empty()) {
-                return MissingArg(command, "operation_id");
-            }
-            if (args.size() == 1 && LooksLikeJsonBody(args.front())) {
-                body = args.front();
-                operation_id = ExtractJsonStringField(body, "operation_id");
-            } else {
-                operation_id = args.front();
-                body = args.size() >= 2 ? args[1] : MinimalOperationPayload(config, "finish", operation_id);
-            }
-            if (operation_id.empty()) {
-                return MissingArg(command, "operation_id");
-            }
-            if (!LooksLikeJsonObject(body)) {
-                return InvalidJson(command);
-            }
-            body = NormalizeOperationPayload(std::move(body), config, "finish");
-            return SendOperationWithQueue(
-                command,
-                "/v1/operations/" + UrlEncode(operation_id) + "/finish",
-                body,
-                config);
+            if (args.empty()) return JsonError(command, "missing_argument", "operation_id is required.");
+            std::string operation_id; std::optional<json> body;
+            if (args.size() == 1 && ParseObject(args.front())) { body = Normalize(args.front(), config, "finish"); if (body && (*body).contains("operation_id") && (*body)["operation_id"].is_string()) operation_id = (*body)["operation_id"]; }
+            else { operation_id = args.front(); body = args.size() > 1 ? Normalize(args[1], config, "finish") : std::optional<json>{Minimal(config, "finish", operation_id)}; }
+            if (operation_id.empty()) return JsonError(command, "missing_argument", "operation_id is required."); if (!body) return Invalid(command);
+            return SendQueued(command, "/v1/operations/" + UrlEncode(operation_id) + "/finish", *body, config);
         }
-
-        if (command == "queue_status") {
-            return QueueStatusJson(command, config);
+        auto store = Store(config);
+        if (command == "queue_status" || command == "queue_dead_status") return json{{"ok", true}, {"command", command}, {"queued_count", store.count_pending()}, {"sent_count", store.count_sent()}, {"dead_letter_count", store.count_dead_letter()}, {"queue_file", config.queue_file.string()}, {"sent_file", config.queue_sent_file.string()}, {"dead_letter_file", config.queue_dead_letter_file.string()}}.dump();
+        if (command == "queue_flush") return FlushJson(command, Flush(config, {}, true)).dump();
+        if (command == "queue_compact") { auto loaded = store.load_pending(); if (!loaded.ok) return JsonError(command, "queue_parse_failed", loaded.error); auto saved = store.replace_pending(loaded.records); return saved.ok ? json{{"ok", true}, {"command", command}, {"queued_count", loaded.records.size()}}.dump() : JsonError(command, "queue_persist_failed", saved.error); }
+        if (command == "queue_dead_compact") return json{{"ok", true}, {"command", command}, {"dead_letter_count", store.count_dead_letter()}}.dump();
+        if (command == "queue_result_get" || command == "queue_result_consume") {
+            if (args.empty()) return JsonError(command, "missing_argument", "request_id is required."); auto loaded = store.load_results(); if (!loaded.ok) return JsonError(command, "queue_parse_failed", loaded.error);
+            std::vector<json> keep; std::optional<json> found; for (auto& record : loaded.records) if (!found && record.value("request_id", "") == args.front()) found = record; else keep.push_back(record);
+            if (command == "queue_result_consume" && found) { auto saved = store.replace_results(keep); if (!saved.ok) return JsonError(command, "queue_persist_failed", saved.error); }
+            return json{{"ok", found.has_value()}, {"command", command}, {"found", found.has_value()}, {"result", found.value_or(json::object())}}.dump();
         }
-
-        if (command == "queue_flush") {
-            return QueueFlushJson(command, FlushQueueInternal(config));
-        }
-
-        if (command == "queue_compact") {
-            WriteQueueRecords(config.queue_file, LoadQueueRecords(config.queue_file));
-            return QueueStatusJson(command, config);
-        }
-
-        if (command == "ingest_request_get") {
-            if (args.empty() || args.front().empty()) {
-                return MissingArg(command, "request_id");
-            }
-            return HttpJson(command, HttpGetAuth("/v1/ingest-requests/" + UrlEncode(args.front()), config));
-        }
-
-        if (command == "operation_get") {
-            if (args.empty() || args.front().empty()) {
-                return MissingArg(command, "operation_id");
-            }
-            return HttpJson(command, HttpGetAuth("/v1/operations/" + UrlEncode(args.front()), config));
-        }
-
-        if (command == "operation_attendance_get") {
-            if (args.empty() || args.front().empty()) {
-                return MissingArg(command, "operation_id");
-            }
-            return HttpJson(command, HttpGetAuth("/v1/operations/" + UrlEncode(args.front()) + "/attendance", config));
-        }
-
-        if (command == "operation_payloads_get") {
-            if (args.empty() || args.front().empty()) {
-                return MissingArg(command, "operation_id");
-            }
-            return HttpJson(command, HttpGetAuth("/v1/operations/" + UrlEncode(args.front()) + "/payloads", config));
-        }
-
-        if (command == "operation_list") {
-            std::string path = "/v1/operations?server_key=" + UrlEncode(config.server_key);
-            if (!args.empty() && !args.front().empty()) {
-                path += "&limit=" + UrlEncode(args.front());
-            }
-            return HttpJson(command, HttpGetAuth(path, config));
-        }
-
+        auto get = [&](std::string path) { return HttpJson(command, HttpGetAuth(path, config)); };
+        if (command == "ingest_request_get" && !args.empty()) return get("/v1/ingest-requests/" + UrlEncode(args.front()));
+        if (command == "operation_get" && !args.empty()) return get("/v1/operations/" + UrlEncode(args.front()));
+        if (command == "operation_attendance_get" && !args.empty()) return get("/v1/operations/" + UrlEncode(args.front()) + "/attendance");
+        if (command == "operation_payloads_get" && !args.empty()) return get("/v1/operations/" + UrlEncode(args.front()) + "/payloads");
+        if (command == "operation_list") return get("/v1/operations?server_key=" + UrlEncode(config.server_key) + (args.empty() ? "" : "&limit=" + UrlEncode(args.front())));
         return JsonError(command, "unknown_command", "Unknown command.");
-    } catch (const std::exception& ex) {
-        return JsonError(command, "internal_error", ex.what());
-    } catch (...) {
-        return JsonError(command, "internal_error", "Unknown internal error.");
-    }
+    } catch (const std::exception& error) { return JsonError(command, "internal_error", error.what()); }
 }
 
 std::string ExecuteCommand(std::string_view command, int argc, const char* const* argv) {
-    std::vector<std::string> args;
-    args.reserve(static_cast<size_t>(argc));
-    for (int index = 0; index < argc; ++index) {
-        args.emplace_back(argv[index] == nullptr ? "" : DecodeSqfStringLiteral(argv[index]));
-    }
-    return ExecuteCommand(command, std::span<const std::string>{args.data(), args.size()});
+    std::vector<std::string> args; args.reserve(std::max(argc, 0));
+    for (int i = 0; i < argc; ++i) args.push_back(argv && argv[i] ? DecodeSqfStringLiteral(argv[i]) : "");
+    return ExecuteCommand(command, args);
 }
-
 } // namespace arma_attendance

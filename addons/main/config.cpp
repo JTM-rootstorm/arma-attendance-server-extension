@@ -155,6 +155,12 @@ class CfgFunctions {
             class operationFinish {
                 file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_operationFinish.sqf";
             };
+            class pendingStartReconcile {
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_pendingStartReconcile.sqf";
+            };
+            class pendingFinishReconcile {
+                file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_pendingFinishReconcile.sqf";
+            };
             class moduleStartOperation {
                 file = "\x\tcwa3_stats_tracker\addons\main\functions\fnc_moduleStartOperation.sqf";
             };

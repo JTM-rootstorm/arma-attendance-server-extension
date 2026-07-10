@@ -21,9 +21,15 @@ void CopyResult(char* output, int output_size, std::string_view value) {
     }
 
     const auto writable = static_cast<size_t>(output_size - 1);
-    const auto count = std::min(writable, value.size());
-    std::memcpy(output, value.data(), count);
-    output[count] = '\0';
+    constexpr std::string_view error = R"({"ok":false,"error":{"code":"response_too_large"}})";
+    const auto selected = value.size() <= writable ? value : error;
+    if (selected.size() > writable) {
+        if (writable >= 2) { output[0] = '{'; output[1] = '}'; output[2 < static_cast<size_t>(output_size) ? 2 : 1] = '\0'; }
+        else output[0] = '\0';
+        return;
+    }
+    std::memcpy(output, selected.data(), selected.size());
+    output[selected.size()] = '\0';
 }
 
 } // namespace
