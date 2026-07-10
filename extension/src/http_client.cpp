@@ -21,7 +21,7 @@ struct ResponseBuffer {
 size_t WriteBody(char* data, size_t size, size_t nmemb, void* userdata) {
     auto* response = static_cast<ResponseBuffer*>(userdata);
     const auto bytes = size * nmemb;
-    if (bytes > response->maximum - std::min(response->maximum, response->body.size())) {
+    if (bytes > response->maximum - (std::min)(response->maximum, response->body.size())) {
         response->overflow = true;
         return 0;
     }
