@@ -17,6 +17,9 @@ on:
 permissions:
   contents: read
 
+env:
+  VCPKG_COMMIT: d015e31e90838a4c9dfa3eed45979bc70d9357fc
+
 jobs:
   linux-extension:
     name: Build Linux extension
@@ -54,7 +57,8 @@ jobs:
                 zip
 
               python3 -m pip install --no-cache-dir "cmake>=3.28,<3.29"
-              git clone --depth 1 https://github.com/microsoft/vcpkg /tmp/vcpkg
+              git clone https://github.com/microsoft/vcpkg /tmp/vcpkg
+              git -C /tmp/vcpkg checkout d015e31e90838a4c9dfa3eed45979bc70d9357fc
               /tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
               cmake -S extension -B build/extension-linux \
@@ -89,7 +93,8 @@ jobs:
 
       - name: Bootstrap vcpkg
         run: |
-          git clone --depth 1 https://github.com/microsoft/vcpkg "$env:RUNNER_TEMP\vcpkg"
+          git clone https://github.com/microsoft/vcpkg "$env:RUNNER_TEMP\vcpkg"
+          git -C "$env:RUNNER_TEMP\vcpkg" checkout $env:VCPKG_COMMIT
           & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
 
@@ -124,6 +129,7 @@ jobs:
     needs:
       - linux-extension
       - windows-extension
+    environment: steam-workshop-production
     steps:
       - name: Checkout
         uses: actions/checkout@v4

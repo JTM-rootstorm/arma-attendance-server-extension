@@ -1,5 +1,5 @@
 param(
-    [string]$SearchRoot = "build/extension-windows"
+    [string]$DllPath = "build/extension-windows/Release/tcwa3_stats_tracker_x64.dll"
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,12 +40,8 @@ function Get-DumpbinPath {
     Write-Error "dumpbin.exe was not found on PATH or under the Visual Studio installation."
 }
 
-$dll = Get-ChildItem -Path $SearchRoot -Recurse -Filter "tcwa3_stats_tracker_x64.dll" |
-    Select-Object -First 1
-
-if (-not $dll) {
-    Write-Error "tcwa3_stats_tracker_x64.dll was not found under $SearchRoot"
-}
+$dll = Get-Item -LiteralPath $DllPath -ErrorAction Stop
+if ($dll.FullName -match "\\Debug\\") { Write-Error "Debug DLL is not a valid release artifact: $($dll.FullName)" }
 
 Write-Host "Inspecting $($dll.FullName)"
 $dumpbin = Get-DumpbinPath
@@ -56,6 +52,12 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $dumpbinOutput | ForEach-Object { Write-Host $_ }
+$headers = & $dumpbin /headers $dll.FullName
+if ($headers -notmatch "8664 machine \(x64\)") { Write-Error "DLL is not AMD64." }
+$exports = & $dumpbin /exports $dll.FullName
+foreach ($name in @("RVExtension", "RVExtensionArgs", "RVExtensionVersion")) {
+    if ($exports -notmatch "\s$name\s*$") { Write-Error "Missing undecorated export: $name" }
+}
 
 $forbidden = @(
     "libcurl.*\.dll",

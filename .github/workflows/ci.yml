@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches-ignore:
+    branches:
       - main
   pull_request:
     branches:
@@ -13,6 +13,12 @@ permissions:
 
 env:
   HEMTT_VERSION: v1.19.1
+  HEMTT_LINUX_X64_SHA256: d503b42b71eb00ec31cca70268896769294aa96d18c1c786bfe3267681ba4d7f
+  VCPKG_COMMIT: d015e31e90838a4c9dfa3eed45979bc70d9357fc
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   payload-contract:
@@ -50,6 +56,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/hemtt-bin"
           curl -fsSL "https://github.com/BrettMayson/HEMTT/releases/download/${HEMTT_VERSION}/linux-x64.zip" -o "$RUNNER_TEMP/hemtt.zip"
+          echo "${HEMTT_LINUX_X64_SHA256}  $RUNNER_TEMP/hemtt.zip" | sha256sum -c -
           unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
           chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
           echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
@@ -108,7 +115,8 @@ jobs:
               python3 -m pip install --no-cache-dir "cmake>=3.28,<3.29"
               cmake --version
 
-              git clone --depth 1 https://github.com/microsoft/vcpkg /tmp/vcpkg
+              git clone https://github.com/microsoft/vcpkg /tmp/vcpkg
+              git -C /tmp/vcpkg checkout d015e31e90838a4c9dfa3eed45979bc70d9357fc
               /tmp/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
               cmake -S extension -B build/extension-linux \
@@ -158,7 +166,8 @@ jobs:
 
       - name: Bootstrap vcpkg
         run: |
-          git clone --depth 1 https://github.com/microsoft/vcpkg "$env:RUNNER_TEMP\vcpkg"
+          git clone https://github.com/microsoft/vcpkg "$env:RUNNER_TEMP\vcpkg"
+          git -C "$env:RUNNER_TEMP\vcpkg" checkout $env:VCPKG_COMMIT
           & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
 
@@ -175,7 +184,10 @@ jobs:
         run: cmake --build build/extension-windows --config Release
 
       - name: Verify static Windows DLL dependencies
-        run: ./tools/verify-windows-dll-static.ps1 -SearchRoot build/extension-windows
+        run: ./tools/verify-windows-dll-static.ps1 -DllPath build/extension-windows/Release/tcwa3_stats_tracker_x64.dll
+
+      - name: Load exact Windows Release DLL
+        run: ./tools/test-windows-dll-load.ps1 -DllPath build/extension-windows/Release/tcwa3_stats_tracker_x64.dll
 
       - name: Smoke test
         run: ctest --test-dir build/extension-windows -C Release --output-on-failure
@@ -184,7 +196,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tcwa3-stats-tracker-extension-windows-x64
-          path: build/extension-windows/**/tcwa3_stats_tracker_x64.dll
+          path: build/extension-windows/Release/tcwa3_stats_tracker_x64.dll
           if-no-files-found: error
 
   release-preview:
@@ -215,6 +227,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/hemtt-bin"
           curl -fsSL "https://github.com/BrettMayson/HEMTT/releases/download/${HEMTT_VERSION}/linux-x64.zip" -o "$RUNNER_TEMP/hemtt.zip"
+          echo "${HEMTT_LINUX_X64_SHA256}  $RUNNER_TEMP/hemtt.zip" | sha256sum -c -
           unzip -q "$RUNNER_TEMP/hemtt.zip" -d "$RUNNER_TEMP/hemtt-bin"
           chmod +x "$RUNNER_TEMP/hemtt-bin/hemtt"
           echo "$RUNNER_TEMP/hemtt-bin" >> "$GITHUB_PATH"
@@ -226,7 +239,7 @@ jobs:
           find artifacts/linux -name 'tcwa3_stats_tracker.so' -exec cp {} build/extension-linux/ \;
           find artifacts/linux -name 'tcwa3_stats_tracker_x64.so' -exec cp {} build/extension-linux/ \;
           find artifacts/windows -name 'tcwa3_stats_tracker_x64.dll' -exec cp {} artifacts/windows/ \;
-          TCWA3_SERVER_WORKSHOP_OUT="$PWD/package" TCWA3_WIN_DLL="$PWD/artifacts/windows/tcwa3_stats_tracker_x64.dll" tools/assemble_workshop_server_extension.sh
+          TCWA3_UNSIGNED_PREVIEW=1 TCWA3_SERVER_WORKSHOP_OUT="$PWD/package" TCWA3_WIN_DLL="$PWD/artifacts/windows/tcwa3_stats_tracker_x64.dll" tools/assemble_workshop_server_extension.sh
           find package -maxdepth 4 -type f -print
 
       - name: Upload preview package
